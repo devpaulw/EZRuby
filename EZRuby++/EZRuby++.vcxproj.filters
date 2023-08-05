@@ -21,15 +21,16 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CubeViewer.cpp">
+    <ClCompile Include="Viewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Howtobemade.txt" />
+    <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CubeViewer.h">
+    <ClInclude Include="Viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

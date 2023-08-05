@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-class CubeViewer
+class Viewer
 {
 private:
 	// settings
@@ -16,7 +16,7 @@ private:
 	void drawCube();
 
 public:
-	CubeViewer() = default;
+	Viewer() = default;
 	int ShowWindow();
 };
 
