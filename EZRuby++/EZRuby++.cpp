@@ -74,6 +74,8 @@ public:
 	}
 	Cube(const Cube& cube) = default; // For now
 
+	// It returns where on which face color1 is located, same for color2.
+	// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 	EdgePosition getEdgePos(Color color1, Color color2) {
 		// we first get the indices where this edge is located
 		int sq1Index, sq2Index;
@@ -97,8 +99,17 @@ public:
 		return ret;
 	}
 
-	void RotateFace(Color faceColor, int towards) {
+	void rotateFace(Color faceColor, int towards) {
 
+	}
+
+	// order: blue red green orange, right if top side is yellow, left if white
+	Color crossNextColor(Color color) {
+
+	}
+
+	Color crossGreaterColor(Color color1, Color color2) {
+		
 	}
 };
 
@@ -116,59 +127,71 @@ public:
 	std::vector<MoveOrientation> getCubeSolution() {
 		_solution.clear(); // to avoid issues when the method is called many times
 
-		// first step
-		// 1. locate white+red
-		// 2. il faut faire une rotation jusqu'a ce que l'arete soit du coté jaune
-		// 3. mettre l'arete dans le bon sens
-		// 4. 2 rotation pour le remettre en place
-
-		// cube.pos(white, red) => white, green [example]
-		// si contains white => 2, si yellow => 0, sinon => 1
-		// si cube.pos(white, red) retourne yellow, x => ok. Sinon : x+, right[x]+, yellow-
-		// x++
-
 		Color whiteColor = Color::White; // todo just use Color::White directly
-		Color sideColor = Color::Red;
-		auto edgePos = _hCube.getEdgePos(whiteColor, sideColor);
+		Color crossColor = Color::Red;
+		auto edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
 		const int sideColorCount = 4;
 
-		// move 1
-		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
-			Color rotatingFace;
-			int rot1Count;
+		{ // move 1
+			if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
+				Color rotatingFace;
+				int rot1Count;
 
-			if (edgePos.contains(Color::White)) {
-				rotatingFace = edgePos.face1Color == Color::White ? edgePos.face2Color : edgePos.face1Color;
-				rot1Count = 2;
+				if (edgePos.contains(Color::White)) {
+					rotatingFace = edgePos.face1Color == Color::White ? edgePos.face2Color : edgePos.face1Color;
+					rot1Count = 2;
+				}
+				else { // on the side
+					// choosing the left face to be rotated
+					rot1Count = -1;
+					std::map<Color, int> sideColorOrder = {
+						{Color::Blue, 0}, {Color::Red, 1}, {Color::Green, 2}, {Color::Orange, 3}
+					};
+
+					int face1Rank = sideColorOrder[edgePos.face1Color],
+						face2Rank = sideColorOrder[edgePos.face2Color];
+
+					if (edgePos.contains(Color::Orange) && edgePos.contains(Color::Blue))
+						rotatingFace = Color::Orange; // exceptional because orange is actually lower than blue
+					else if (face1Rank < face2Rank)
+						rotatingFace = edgePos.face1Color;
+					else if (face2Rank < face1Rank)
+						rotatingFace = edgePos.face2Color;
+					else
+						throw std::exception();
+				} // WARN: Not sure it will work, review this piece of code.
+
+				_hCube.rotateFace(rotatingFace, rot1Count); // TODO: Instead of just that, make a method like "RegisterRotation" that both rotates the face and save the move
 			}
-			else { // on the side
-				// choosing the left face to be rotated
-				rot1Count = -1;
-				std::map<Color, int> sideColorOrder = {
-					{Color::Blue, 0}, {Color::Red, 1}, {Color::Green, 2}, {Color::Orange, 3}
-				};
-
-				int face1Rank = sideColorOrder[edgePos.face1Color],
-					face2Rank = sideColorOrder[edgePos.face2Color];
-
-				if (edgePos.contains(Color::Orange) && edgePos.contains(Color::Blue))
-					rotatingFace = Color::Orange; // exceptional because orange is actually lower than blue
-				else if (face1Rank < face2Rank)
-					rotatingFace = edgePos.face1Color;
-				else if (face2Rank < face1Rank)
-					rotatingFace = edgePos.face2Color;
-				else
-					throw std::exception();
-			} // WARN: Not sure it will work, review this piece of code.
-
-			_hCube.RotateFace(rotatingFace, rot1Count); // TODO: Instead of just that, make a method like "RegisterRotation" that both rotates the face and save the move
 		}
 
-		// move 2
-		// technique: rotate until one of the edge square touches right face
-		while (!_hCube.getEdgePos(whiteColor, sideColor).contains(sideColor)) { // TODO: Just done rapidly but should evolve.
-			_hCube.RotateFace(Color::Yellow, 1);
+		{ // move 2
+			// technique: rotate until one of the edge square touches right face
+			// OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
+			int rot2Count = 0;
+			EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+			while (!edgePos.contains(crossColor)) {
+				_hCube.rotateFace(Color::Yellow, 1);
+				if (++rot2Count >= sideColorCount) {
+					throw std::exception("yellow face rotation count should not exceed 3");
+				}
+				edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+			}
+		}
+		
+		{ // move 3 
+			EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+			
+			if (edgePos.face1Color != Color::Yellow) { // if we need to 
+				_hCube.rotateFace(crossColor, 1);
+				Color nextColor = _hCube.crossNextColor(crossColor);
+				_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
+				_hCube.rotateFace(Color::Yellow, 1);
+			}
+
+			// final move
+			_hCube.rotateFace(crossColor, 2);
 		}
 	}
 };

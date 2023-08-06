@@ -1,3 +1,10 @@
-How this software will be made?
-Solution la plus simple du monde : 
-Identification comme un humain, on met ...
+first step
+1. locate white+red
+2. il faut faire une rotation jusqu'a ce que l'arete soit du coté jaune
+3. mettre l'arete dans le bon sens
+4. 2 rotation pour le remettre en place
+
+cube.pos(white, red) => white, green [example]
+si contains white => 2, si yellow => 0, sinon => 1
+si cube.pos(white, red) retourne yellow, x => ok. Sinon : x+, right[x]+, yellow-
+x++
