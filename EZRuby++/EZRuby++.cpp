@@ -37,9 +37,9 @@ public:
 
 class Cube {
 public:
-	static const int FACE_SQ_COUNT = 9;
+	static const int FACE_SQ_COUNT = 8; // we don't take the middle square into account because it's static
 	static const int FACE_COUNT = 6;
-	static const int SQ_COUNT = FACE_SQ_COUNT * FACE_COUNT - FACE_COUNT; // 48
+	static const int SQ_COUNT = FACE_SQ_COUNT * FACE_COUNT; // 48
 
 private:
 	Color _sqArr[SQ_COUNT];
@@ -71,6 +71,19 @@ private:
 public:
 	Cube() {
 		{ for (size_t i = 0; i < SQ_COUNT; i++) _sqArr[i] = Color::Blue; } // Note: this is definitely temporary
+	}
+	Cube(char strRepr[SQ_COUNT]) {
+		// TODO verifs
+		for (size_t i = 0; i < SQ_COUNT; i++) {
+			char c;
+			switch (c) {
+			case 'W':
+				_sqArr[i] = Color::White;
+				break;
+			case 'Y':
+				break;
+			}
+		}
 	}
 	Cube(const Cube& cube) = default; // For now
 
@@ -183,7 +196,7 @@ public:
 		{ // move 3 
 			EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 			
-			if (edgePos.face1Color != Color::Yellow) { // if we need to 
+			if (edgePos.face1Color != Color::Yellow) {
 				_hCube.rotateFace(crossColor, 1);
 				Color nextColor = _hCube.crossNextColor(crossColor);
 				_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
@@ -199,7 +212,7 @@ public:
 int main()
 {
 	Viewer viewer;
-	int result = viewer.ShowWindow();
+	int result = viewer.showWindow();
 	return result;
 }
 
