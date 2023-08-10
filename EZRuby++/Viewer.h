@@ -1,13 +1,16 @@
 #pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Viewer
 {
 private:
 	// settings
 	const unsigned int SCR_WIDTH = 800;
-	const unsigned int SCR_HEIGHT = 600;
+	const unsigned int SCR_HEIGHT = 800;//600; temp
 
 	bool _initialized;
 	GLFWwindow *_window;
@@ -20,7 +23,7 @@ private:
 	void processInput(GLFWwindow* window);
 	void graphicsInitSquare();
 	void graphicsDeleteSquare();
-	void drawSquare(float posX, float posY, float size);
+	void drawSquare(float posX, float posY, float size, glm::vec3 color);
 	void drawCube();
 	void render();
 
