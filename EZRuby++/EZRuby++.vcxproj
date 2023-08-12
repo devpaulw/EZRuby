@@ -132,6 +132,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="Solver.cpp" />
     <ClCompile Include="Viewer.cpp" />
     <ClCompile Include="EZRuby++.cpp" />
     <ClCompile Include="glad.c" />
@@ -141,6 +143,10 @@
     <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BasicTypes.h" />
+    <ClInclude Include="Cube.h" />
+    <ClInclude Include="EdgePosition.h" />
+    <ClInclude Include="Solver.h" />
     <ClInclude Include="Viewer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

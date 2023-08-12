@@ -1,7 +1,10 @@
 #include "Viewer.h"
 #include <iostream>
+#include <map>
 
-Viewer::Viewer()
+using namespace EzRuby;
+
+Viewer::Viewer(const Cube& cube) : _cube(cube)
 {
 }
 
@@ -15,8 +18,8 @@ int Viewer::showWindow()
 	// glfw: initialize and configure
 	// ------------------------------
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -165,10 +168,10 @@ void Viewer::render() {
 	drawCube();
 }
 
-void Viewer::drawSquare(float posX, float posY, float size, glm::vec3 color) {
+void Viewer::drawSquare(glm::vec2 position, float size, glm::vec3 color) {
 	// create transformations
 	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-	transform = glm::translate(transform, glm::vec3(posX, posY, 0.0f));
+	transform = glm::translate(transform, glm::vec3(position, 0.0f));
 	transform = glm::scale(transform, glm::vec3(size));
 
 	// get matrix's uniform location and set matrix
@@ -187,8 +190,31 @@ void Viewer::drawSquare(float posX, float posY, float size, glm::vec3 color) {
 
 void Viewer::drawCube() {
 	// TODO: draw the full cube now
-	glm::vec3 color1 = glm::vec3(0, 0, 1);
+	/*glm::vec3 color1 = glm::vec3(0, 0, 1);
 	drawSquare(-0.9f, -0.9f, 0.1f, color1);
 	glm::vec3 color2 = glm::vec3(1, 0, 0);
-	drawSquare(-0.7f, -0.9f, 0.1f, color2);
+	drawSquare(0.0f, -0.9f, 0.1f, color2);
+	glm::vec3 color3 = glm::vec3(0, 1, 0);
+	drawSquare(0.9f, -0.9f, 0.1f, color3);*/
+
+	const float sqSize = 0.075f; // it represents only half
+	// green 27 at 0.0f,0.0f
+	// green side
+	glm::vec3 greenColor = glm::vec3(0.0f, 1.0f, 0.0f);
+	std::map<int, glm::vec2> sqMap = {
+		{27, glm::vec2(sqSize, 0.0f)}, {24, glm::vec2(sqSize, 2 * sqSize)}
+	};
+
+	/*Cube::FACE_SQ_COUNT*/
+	//std::map<Color, std::vec3>
+
+
+
+	for (size_t i = 0; i < Cube::SQ_COUNT; i++) {
+		bool isDefined = (sqMap.find(i) != sqMap.end()); // temp
+		if (!isDefined) continue;
+
+		glm::vec2 position = sqMap[i];
+		drawSquare(position, sqSize, greenColor);
+	}
 }
