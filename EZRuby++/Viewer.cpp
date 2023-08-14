@@ -237,9 +237,6 @@ void ViewerV1::drawCube() {
 	};
 
 	for (size_t i = 0; i < Cube::SQ_COUNT; i++) {
-		bool isDefined = (sqPosMap.find(i) != sqPosMap.end()); // temp
-		if (!isDefined) continue;
-	
 		glm::vec2 position = sqPosMap[i];
 		Color sqColor = _cube.getColorAt(i);
 		drawSquare(position, SQ_SIZE, glmColors[sqColor]);

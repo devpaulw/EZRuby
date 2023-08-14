@@ -6,6 +6,9 @@ using namespace EzRuby;
 std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
+	auto ep = _hCube.getEdgePos(Color::White, Color::Red);
+
+	return std::vector<MoveOrientation>();
 	Color whiteColor = Color::White; // todo just use Color::White directly
 	Color crossColor = Color::Red;
 	auto edgePos = _hCube.getEdgePos(whiteColor, crossColor);
@@ -45,31 +48,31 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 		}
 	}
 
-	{ // move 2
-	  // technique: rotate until one of the edge square touches right face
-	  // OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
-		int rot2Count = 0;
-		EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
-		while (!edgePos.contains(crossColor)) {
-			_hCube.rotateFace(Color::Yellow, 1);
-			if (++rot2Count >= sideColorCount) {
-				throw std::exception("yellow face rotation count should not exceed 3");
-			}
-			edgePos = _hCube.getEdgePos(whiteColor, crossColor);
-		}
-	}
+	//{ // move 2
+	//  // technique: rotate until one of the edge square touches right face
+	//  // OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
+	//	int rot2Count = 0;
+	//	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+	//	while (!edgePos.contains(crossColor)) {
+	//		_hCube.rotateFace(Color::Yellow, 1);
+	//		if (++rot2Count >= sideColorCount) {
+	//			throw std::exception("yellow face rotation count should not exceed 3");
+	//		}
+	//		edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+	//	}
+	//}
 
-	{ // move 3 
-		EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+	//{ // move 3 
+	//	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
-		if (edgePos.face1Color != Color::Yellow) {
-			_hCube.rotateFace(crossColor, 1);
-			Color nextColor = _hCube.crossNextColor(crossColor);
-			_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
-			_hCube.rotateFace(Color::Yellow, 1);
-		}
+	//	if (edgePos.face1Color != Color::Yellow) {
+	//		_hCube.rotateFace(crossColor, 1);
+	//		Color nextColor = _hCube.crossNextColor(crossColor);
+	//		_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
+	//		_hCube.rotateFace(Color::Yellow, 1);
+	//	}
 
-		// final move
-		_hCube.rotateFace(crossColor, 2);
-	}
+	//	// final move
+	//	_hCube.rotateFace(crossColor, 2);
+	//}
 }

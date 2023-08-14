@@ -2,6 +2,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include "ezruby_exception.h"
 using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
@@ -44,7 +45,21 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	int sq1Index, sq2Index;
 	bool noFailure = false;
 
-	for (sq1Index = 1; sq1Index < SQ_COUNT; sq1Index += 2) {
+	auto nextIndex = [](int x) {
+		int indexOnFace = x % FACE_SQ_COUNT;
+		switch (indexOnFace) {
+		case 3: 
+			return 1;
+		case 6: 
+			return 3;
+		case 4:
+		case 1:
+			return 2;
+		default:
+			throw EZRubyException("The square index is not from an edge");
+		}
+	};
+	for (sq1Index = 1; sq1Index < SQ_COUNT; sq1Index += nextIndex(sq1Index)) {
 		sq2Index = edgeSqNeighbor(sq1Index);
 		if (_sqArr[sq1Index] == color1 && _sqArr[sq2Index] == color2) {
 			noFailure = true;
@@ -53,11 +68,11 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	}
 
 	if (!noFailure)
-		throw std::exception();
+		throw EZRubyException();
 
 	// then, we determine on which face these indices belong
-	Color face1Color = indexBelongingFace(sq1Index);
-	Color face2Color = indexBelongingFace(sq2Index);
+	Color face1Color = Color::White;// indexBelongingFace(sq1Index);
+	Color face2Color = Color::Yellow; //indexBelongingFace(sq2Index);
 	EdgePosition ret(face1Color, face2Color);
 	return ret;
 }

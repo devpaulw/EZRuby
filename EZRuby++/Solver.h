@@ -11,6 +11,8 @@ namespace EzRuby {
 
 
 	public:
+		Solver() = delete;
+		Solver(const Solver& solver) = delete;
 		Solver(const Cube& cubeToSolve) : _hCube(cubeToSolve) // by copy constructor
 		{
 		}

@@ -133,6 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="ezruby_exception.h" />
     <ClCompile Include="Solver.cpp" />
     <ClCompile Include="Viewer.cpp" />
     <ClCompile Include="EZRuby++.cpp" />
