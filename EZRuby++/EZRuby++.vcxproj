@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\hp\LocalDocs\CppLibs\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\hp\LocalDocs\CppLibs\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Files\Documents\CppLibs\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Files\Documents\CppLibs\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

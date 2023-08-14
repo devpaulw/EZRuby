@@ -1,6 +1,7 @@
 #pragma once
 #include "BasicTypes.h"
 #include "EdgePosition.h"
+#include <array>
 
 namespace EzRuby {
 	class Cube {
@@ -13,21 +14,22 @@ namespace EzRuby {
 		Color _sqArr[SQ_COUNT];
 
 		// Edge square neighbor
-		int edgeSqNeighbor(int sqIndex);
-		Color indexBelongingFace(int index);
+		int edgeSqNeighbor(int sqIndex) const;
+		Color indexBelongingFace(int index) const;
 
 	public:
 		Cube();
-		Cube(char strRepr[SQ_COUNT]);
+		Cube(std::array<Color, SQ_COUNT> sqArr);
 		Cube(const Cube& cube) = default; // For now
 
+		inline Color getColorAt(int index) const { return _sqArr[index]; }
 		// It returns where on which face color1 is located, same for color2.
 		// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
-		EdgePosition getEdgePos(Color color1, Color color2);
+		EdgePosition getEdgePos(Color color1, Color color2) const;
 		void rotateFace(Color faceColor, int towards);
 		// order: blue red green orange, right if top side is yellow, left if white
-		Color crossNextColor(Color color);
-		Color crossGreaterColor(Color color1, Color color2);
+		Color crossNextColor(Color color) const;
+		Color crossGreatestColor(Color color1, Color color2) const;
 	};
 
 }

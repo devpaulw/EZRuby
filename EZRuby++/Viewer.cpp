@@ -4,16 +4,16 @@
 
 using namespace EzRuby;
 
-Viewer::Viewer(const Cube& cube) : _cube(cube)
+ViewerV1::ViewerV1(const Cube& cube) : _cube(cube)
 {
 }
 
-Viewer::~Viewer()
+ViewerV1::~ViewerV1()
 {
 	graphicsDeleteSquare();
 }
 
-int Viewer::showWindow()
+int ViewerV1::showWindow()
 {
 	// glfw: initialize and configure
 	// ------------------------------
@@ -58,7 +58,6 @@ int Viewer::showWindow()
 		glfwPollEvents();
 	}
 
-
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
 	glfwTerminate();
@@ -66,7 +65,7 @@ int Viewer::showWindow()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void Viewer::processInput(GLFWwindow* window)
+void ViewerV1::processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -74,13 +73,13 @@ void Viewer::processInput(GLFWwindow* window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void Viewer::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void ViewerV1::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
 }
 
-void Viewer::graphicsInitSquare()
+void ViewerV1::graphicsInitSquare()
 {
 	if (_initialized)
 		return;
@@ -152,7 +151,7 @@ void Viewer::graphicsInitSquare()
 	glEnableVertexAttribArray(0);
 }
 
-void Viewer::graphicsDeleteSquare() {
+void ViewerV1::graphicsDeleteSquare() {
 	_initialized = false;
 	glDeleteVertexArrays(1, &_vao);
 	glDeleteBuffers(1, &_vbo);
@@ -162,18 +161,27 @@ void Viewer::graphicsDeleteSquare() {
 	delete[] _indices;
 }
 
-void Viewer::render() {
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+void ViewerV1::render() {
+	glClearColor(0.0f, 0.05f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	drawCube();
 }
 
-void Viewer::drawSquare(glm::vec2 position, float size, glm::vec3 color) {
+void ViewerV1::drawSquare(glm::vec2 position, float size, glm::vec3 color) {
+	glBindVertexArray(_vao);
+
 	// create transformations
 	glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+
+	// proj matrix
+	int windowWidth, windowHeight;
+	glfwGetFramebufferSize(_window, &windowWidth, &windowHeight);
+	float aspectRatio = static_cast<float>(windowWidth) / windowHeight;
+	glm::mat4 projectionMatrix = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+	transform *= projectionMatrix;
+	// square position/size
 	transform = glm::translate(transform, glm::vec3(position, 0.0f));
 	transform = glm::scale(transform, glm::vec3(size));
-
 	// get matrix's uniform location and set matrix
 	glUseProgram(_shaderProgram);
 	unsigned int transformLoc = glGetUniformLocation(_shaderProgram, "transform");
@@ -182,39 +190,65 @@ void Viewer::drawSquare(glm::vec2 position, float size, glm::vec3 color) {
 	// set color
 	unsigned int colorLoc = glGetUniformLocation(_shaderProgram, "color");
 	glUniform3fv(colorLoc, 1, glm::value_ptr(color));
-
-	// render container
-	glBindVertexArray(_vao);
+	
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void Viewer::drawCube() {
-	// TODO: draw the full cube now
-	/*glm::vec3 color1 = glm::vec3(0, 0, 1);
-	drawSquare(-0.9f, -0.9f, 0.1f, color1);
-	glm::vec3 color2 = glm::vec3(1, 0, 0);
-	drawSquare(0.0f, -0.9f, 0.1f, color2);
-	glm::vec3 color3 = glm::vec3(0, 1, 0);
-	drawSquare(0.9f, -0.9f, 0.1f, color3);*/
+void ViewerV1::drawCube() {
+	// Making square position map
+	std::map<int, glm::vec2> sqPosMap = {
+		// green face
+		{27, glm::vec2(1 * SQ_SIZE, 0)}, 
+		{24, glm::vec2(1 * SQ_SIZE, 2 * SQ_SIZE)},
+		{29, glm::vec2(1 * SQ_SIZE, -2 * SQ_SIZE)},
+		{25, glm::vec2(3 * SQ_SIZE, 2 * SQ_SIZE)},
+		{26, glm::vec2(5 * SQ_SIZE, 2 * SQ_SIZE)},
+		{30, glm::vec2(3 * SQ_SIZE, -2 * SQ_SIZE)},
+		{31, glm::vec2(5 * SQ_SIZE, -2 * SQ_SIZE)},
+		{28, glm::vec2(5 * SQ_SIZE, 0 * SQ_SIZE)},
+	};
+	std::pair<int, glm::vec2> offsets[] = {
+		{-8, glm::vec2(-6 * SQ_SIZE, 0)},
+		{-16, glm::vec2(-12 * SQ_SIZE, 0)},
+		{8, glm::vec2(6 * SQ_SIZE, 0)},
+		{-24, glm::vec2(-6 * SQ_SIZE, 6 * SQ_SIZE)},
+		{16, glm::vec2(-6 * SQ_SIZE, -6 * SQ_SIZE)},
+	};
+	for (int i = 0; i < Cube::FACE_COUNT - 1; i++) {
+		// now, duplicate the green face but for other faces
+		for (size_t j = 24; j <= 31; j++) {
+			int indexOffset = offsets[i].first;
+			int newIndex = j + indexOffset;
+			glm::vec2 posOffset = offsets[i].second;
+			glm::vec2 newPos = sqPosMap[j] + posOffset;
+			sqPosMap.insert(std::make_pair(newIndex, newPos));
+		}
+	}
 
-	const float sqSize = 0.075f; // it represents only half
-	// green 27 at 0.0f,0.0f
-	// green side
-	glm::vec3 greenColor = glm::vec3(0.0f, 1.0f, 0.0f);
-	std::map<int, glm::vec2> sqMap = {
-		{27, glm::vec2(sqSize, 0.0f)}, {24, glm::vec2(sqSize, 2 * sqSize)}
+	Color faceColorOrder[] = { Color::Red, Color::Blue, Color::White, Color::Green, Color::Yellow, Color::Orange };
+
+	std::map<Color, glm::vec3> glmColors = {
+		{Color::Red, glm::vec3(1.0f, 0.0f, 0.0f)},
+		{Color::Blue, glm::vec3(0.0f, 0.0f, 1.0f)},
+		{Color::White, glm::vec3(1.0f, 1.0f, 1.0f)},
+		{Color::Green, glm::vec3(0.0f, 1.0f, 0.0f)},
+		{Color::Yellow, glm::vec3(1.0f, 1.0f, 0.0f)},
+		{Color::Orange, glm::vec3(1.0f, 123.0f/255.0f, 25.0f/255.0f)},
 	};
 
-	/*Cube::FACE_SQ_COUNT*/
-	//std::map<Color, std::vec3>
-
-
-
 	for (size_t i = 0; i < Cube::SQ_COUNT; i++) {
-		bool isDefined = (sqMap.find(i) != sqMap.end()); // temp
+		bool isDefined = (sqPosMap.find(i) != sqPosMap.end()); // temp
 		if (!isDefined) continue;
+	
+		glm::vec2 position = sqPosMap[i];
+		Color sqColor = _cube.getColorAt(i);
+		drawSquare(position, SQ_SIZE, glmColors[sqColor]);
 
-		glm::vec2 position = sqMap[i];
-		drawSquare(position, sqSize, greenColor);
+		// Middle square, to the right of the left square
+		if (i % Cube::FACE_SQ_COUNT == 3) {
+			Color currentDrawingColor = faceColorOrder[i / Cube::FACE_SQ_COUNT];
+			glm::vec2 offset = glm::vec2(2 * SQ_SIZE, 0.0f);
+			drawSquare(position + offset, SQ_SIZE, glmColors[currentDrawingColor]);
+		}
 	}
 }

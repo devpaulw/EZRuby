@@ -1,8 +1,10 @@
 #include "Cube.h"
 #include <map>
+#include <algorithm>
+#include <iostream>
 using namespace EzRuby;
 
-int EzRuby::Cube::edgeSqNeighbor(int sqIndex) {
+int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
 	std::map<int, int> neighborMap = {
 	{1, 35}, {3, 9}, {4, 25}, {6, 17},
 	{9, 3}, {11, 36}, {12, 19}, {14, 43},
@@ -15,7 +17,7 @@ int EzRuby::Cube::edgeSqNeighbor(int sqIndex) {
 	return neighborMap[sqIndex];
 }
 
-Color EzRuby::Cube::indexBelongingFace(int index) {
+Color EzRuby::Cube::indexBelongingFace(int index) const {
 	if (index >= 0 && index <= 7)
 		return Color::Red;
 	else if (index >= 8 && index <= 15)
@@ -30,24 +32,14 @@ inline EzRuby::Cube::Cube() {
 	{ for (size_t i = 0; i < SQ_COUNT; i++) _sqArr[i] = Color::Blue; } // Note: this is definitely temporary
 }
 
-EzRuby::Cube::Cube(char strRepr[SQ_COUNT]) {
-	// TODO verifs
-	//for (size_t i = 0; i < SQ_COUNT; i++) {
-	//	char c;
-	//	switch (c) {
-	//	case 'W':
-	//		_sqArr[i] = Color::White;
-	//		break;
-	//	case 'Y':
-	//		break;
-	//	}
-	//}
+EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
+	std::copy(std::begin(sqArr), std::end(sqArr), std::begin(_sqArr));
 }
 
 // It returns where on which face color1 is located, same for color2.
 // TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 
-EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) {
+EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	// we first get the indices where this edge is located
 	int sq1Index, sq2Index;
 	bool noFailure = false;
@@ -75,10 +67,10 @@ void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
 }
 
 // order: blue red green orange, right if top side is yellow, left if white
-Color EzRuby::Cube::crossNextColor(Color color) {
+Color EzRuby::Cube::crossNextColor(Color color) const {
 	return Color::Blue;
 }
 
-Color EzRuby::Cube::crossGreaterColor(Color color1, Color color2) {
+Color EzRuby::Cube::crossGreatestColor(Color color1, Color color2) const {
 	return Color::Blue;
 }

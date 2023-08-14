@@ -7,12 +7,14 @@
 #include "Cube.h"
 
 namespace EzRuby {
-	class Viewer
+	// ViewerV1 draws a lightweight 2D pattern of the cube
+	class ViewerV1 
 	{
 	private:
 		// settings
-		const unsigned int SCR_WIDTH = 800;
-		const unsigned int SCR_HEIGHT = 800;//600; temp
+		const unsigned int SCR_WIDTH = (unsigned int)(800.0f*1.2f);
+		const unsigned int SCR_HEIGHT = (unsigned int)(600.0f*1.2f);
+		const float SQ_SIZE = 0.095f;
 
 		const Cube& _cube;
 		bool _initialized;
@@ -21,6 +23,7 @@ namespace EzRuby {
 		float* _vertices;
 		unsigned int* _indices;
 		unsigned int _shaderProgram;
+		glm::mat4 _projectionMatrix;
 
 		static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 		void processInput(GLFWwindow* window);
@@ -31,8 +34,9 @@ namespace EzRuby {
 		void render();
 
 	public:
-		Viewer(const Cube& cube);
-		~Viewer();
+		ViewerV1() = delete;
+		ViewerV1(const Cube& cube);
+		~ViewerV1();
 		int showWindow();
 	};
 }
