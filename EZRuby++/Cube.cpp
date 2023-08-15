@@ -78,7 +78,72 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 }
 
 void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
-	std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl;
+	std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
+
+	if (towards == 0)
+		return; // No need to do anything in this case 
+	else if (towards == 2) {
+		rotateFace(faceColor, 1);
+		rotateFace(faceColor, 1);
+		return;
+	}
+	else if (towards != -1 && towards != 1)
+		throw EZRubyException("Rotation count should be between -1 and 2 (-, + or ++)");
+	// At this stage after the above checks, towards can be either -1 or 1, by the way gonna test it too
+
+	const size_t sideSqCount = 12;
+	std::array<int, sideSqCount> sideSquares;
+	int faceIndex;
+	switch (faceColor) {
+	case Color::Red:
+		faceIndex = 0;
+		sideSquares = { 45, 46, 47, 26, 25, 24, 18, 17, 16, 10, 9, 8 };
+		break;
+	case Color::Blue:
+		faceIndex = 1;
+		sideSquares = { 0, 3, 5, 16, 19, 21, 40, 43, 45, 39, 36, 34 };
+		break;
+	case Color::White:
+		faceIndex = 2;
+		sideSquares = { 5, 6, 7, 24, 27, 29, 42, 41, 40, 15, 12, 10 };
+		break;
+	case Color::Green:
+		faceIndex = 3;
+		sideSquares = { 7, 4, 2, 32, 35, 37, 47, 44, 42, 23, 20, 18 };
+		break;
+	case Color::Yellow:
+		faceIndex = 4;
+		sideSquares = { 2, 1, 0, 8, 11, 13, 45, 46, 47, 31, 28, 26 };
+		break;
+	case Color::Orange:
+		faceIndex = 5;
+		sideSquares = { 21, 22, 23, 29, 30, 31, 2, 1, 0, 13, 14, 15 };
+		break;
+	default:
+		throw EZRubyException("Wrong color");
+	} // TODO Check if nothing is wrong
+
+	{ // first step: side squares 
+		std::array<Color, sideSqCount> newPlacement{}; // new colors placement
+		const int gap = towards == 1 ? 3 : -3; // Depending if we are clockwise or counter-clockwise
+		if (towards == 1) { // clockwise
+			for (size_t i = 0; i < sideSqCount; i++) {
+				const int sqArrIndex = sideSquares[i];
+				const int npIndex = (i + gap + sideSqCount) % sideSqCount;
+				newPlacement[npIndex] = _sqArr[sqArrIndex];
+			}
+		}
+
+		// concrete new color attribution
+		for (size_t i = 0; i < sideSqCount; i++) {
+			const int sqArrIndex = sideSquares[i];
+			Color colorAttrib = newPlacement[i];
+			_sqArr[sqArrIndex] = colorAttrib;
+		}
+	}
+	{ // second step : front squares
+		// TODO, but test previous first
+	}
 }
 
 // order: blue red green orange, right if top side is yellow, left if white

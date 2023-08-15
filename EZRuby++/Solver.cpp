@@ -12,8 +12,8 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
 	const int sideColorCount = 4;
-
-	{ // move 1
+	for (size_t i = 0; i < 2; i++) // vely temp
+	{ // move 1, aiming to bring the edge towards yellow face
 		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
 			Color rotatingFace;
 			int rot1Count;
@@ -23,7 +23,7 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 				rot1Count = 2;
 			}
 			else { // on the side
-				// choosing the left face to be rotated
+				// choosing the rightmost face to be rotated
 				rot1Count = -1;
 				rotatingFace = _hCube.crossGreatestColor(edgePos.face1Color, edgePos.face2Color);
 			} // WARN: Not sure it will work, review this piece of code.

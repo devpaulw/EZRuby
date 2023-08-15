@@ -2,7 +2,6 @@
 #include "BasicTypes.h"
 #include "EdgePosition.h"
 #include <array>
-#define ENUM_TO_STRING(e) #e
 
 namespace EzRuby {
 	class Cube {

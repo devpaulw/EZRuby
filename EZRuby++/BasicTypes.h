@@ -12,6 +12,6 @@ namespace EzRuby {
 	};
 
 	enum Color {
-		Red, Green, Orange, Blue, Yellow, White
+		Red, Blue, White, Green, Yellow, Orange
 	};
 }
