@@ -1,17 +1,15 @@
 #include "Solver.h"
 #include <map>
+#include <iostream>
 
 using namespace EzRuby;
 
 std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
-	auto ep = _hCube.getEdgePos(Color::White, Color::Red);
-
-	return std::vector<MoveOrientation>();
 	Color whiteColor = Color::White; // todo just use Color::White directly
 	Color crossColor = Color::Red;
-	auto edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
 	const int sideColorCount = 4;
 
@@ -21,29 +19,15 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 			int rot1Count;
 
 			if (edgePos.contains(Color::White)) {
-				rotatingFace = edgePos.face1Color == Color::White ? edgePos.face2Color : edgePos.face1Color;
+				rotatingFace = edgePos.face1Color == Color::White ? edgePos.face2Color : edgePos.face1Color; // rotating the color that is not white
 				rot1Count = 2;
 			}
 			else { // on the side
 				// choosing the left face to be rotated
 				rot1Count = -1;
-				std::map<Color, int> sideColorOrder = {
-					{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 }
-				};
-
-				int face1Rank = sideColorOrder[edgePos.face1Color],
-					face2Rank = sideColorOrder[edgePos.face2Color];
-
-				if (edgePos.contains(Color::Orange) && edgePos.contains(Color::Blue))
-					rotatingFace = Color::Orange; // exceptional because orange is actually lower than blue
-				else if (face1Rank < face2Rank)
-					rotatingFace = edgePos.face1Color;
-				else if (face2Rank < face1Rank)
-					rotatingFace = edgePos.face2Color;
-				else
-					throw std::exception();
+				rotatingFace = _hCube.crossGreatestColor(edgePos.face1Color, edgePos.face2Color);
 			} // WARN: Not sure it will work, review this piece of code.
-
+			
 			_hCube.rotateFace(rotatingFace, rot1Count); // TODO: Instead of just that, make a method like "RegisterRotation" that both rotates the face and save the move
 		}
 	}
@@ -75,4 +59,6 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	//	// final move
 	//	_hCube.rotateFace(crossColor, 2);
 	//}
+
+	return std::vector<MoveOrientation>(); // temp
 }

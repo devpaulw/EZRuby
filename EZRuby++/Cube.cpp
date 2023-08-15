@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include "ezruby_exception.h"
+#include <array>
 using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
@@ -19,14 +20,14 @@ int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
 }
 
 Color EzRuby::Cube::indexBelongingFace(int index) const {
-	if (index >= 0 && index <= 7)
-		return Color::Red;
-	else if (index >= 8 && index <= 15)
-		return Color::Blue;
-	// not done!
-	else {
-		throw std::exception();
-	}
+	if (index < 0 || index > 48)
+		throw EZRubyException();
+
+	Color faceColorOrder[] = {Color::Red, Color::Blue, Color::White, Color::Green, Color::Yellow, Color::Orange};
+	const int indexOnFace = index / FACE_SQ_COUNT;
+	Color ret = faceColorOrder[indexOnFace]; 
+	return ret;
+
 }
 
 inline EzRuby::Cube::Cube() {
@@ -45,7 +46,7 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	int sq1Index, sq2Index;
 	bool noFailure = false;
 
-	auto nextIndex = [](int x) {
+	auto nextIndexDistance = [](int x) {
 		int indexOnFace = x % FACE_SQ_COUNT;
 		switch (indexOnFace) {
 		case 3: 
@@ -59,26 +60,25 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 			throw EZRubyException("The square index is not from an edge");
 		}
 	};
-	for (sq1Index = 1; sq1Index < SQ_COUNT; sq1Index += nextIndex(sq1Index)) {
+	for (sq1Index = 1; sq1Index < SQ_COUNT; sq1Index += nextIndexDistance(sq1Index)) {
 		sq2Index = edgeSqNeighbor(sq1Index);
 		if (_sqArr[sq1Index] == color1 && _sqArr[sq2Index] == color2) {
 			noFailure = true;
 			break;
 		}
 	}
-
 	if (!noFailure)
 		throw EZRubyException();
 
 	// then, we determine on which face these indices belong
-	Color face1Color = Color::White;// indexBelongingFace(sq1Index);
-	Color face2Color = Color::Yellow; //indexBelongingFace(sq2Index);
+	Color face1Color = indexBelongingFace(sq1Index);
+	Color face2Color = indexBelongingFace(sq2Index);
 	EdgePosition ret(face1Color, face2Color);
 	return ret;
 }
 
 void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
-	
+	std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl;
 }
 
 // order: blue red green orange, right if top side is yellow, left if white
@@ -87,5 +87,19 @@ Color EzRuby::Cube::crossNextColor(Color color) const {
 }
 
 Color EzRuby::Cube::crossGreatestColor(Color color1, Color color2) const {
-	return Color::Blue;
+	std::map<Color, int> sideColorOrder = {
+	{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 }};
+
+	int face1Rank = sideColorOrder[color1],
+		face2Rank = sideColorOrder[color2];
+
+	if ((color1 == Color::Orange && color2 == Color::Blue)
+		|| (color1 == Color::Blue && color2 == Color::Orange))
+		return Color::Orange; // exceptional because orange is actually lower than blue
+	else if (face1Rank < face2Rank)
+		return color1;
+	else if (face2Rank < face1Rank)
+		return color2;
+	else
+		throw std::exception();
 }
