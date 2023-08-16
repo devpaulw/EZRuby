@@ -6,7 +6,8 @@ using namespace EzRuby;
 
 std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
-
+	
+	// std::vector<MoveOrientation>();
 	Color whiteColor = Color::White; // todo just use Color::White directly
 	Color crossColor = Color::Red;
 	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);

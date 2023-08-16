@@ -4,6 +4,7 @@
 #include <iostream>
 #include "ezruby_exception.h"
 #include <array>
+#include <functional>
 using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
@@ -23,9 +24,9 @@ Color EzRuby::Cube::indexBelongingFace(int index) const {
 	if (index < 0 || index > 48)
 		throw EZRubyException();
 
-	Color faceColorOrder[] = {Color::Red, Color::Blue, Color::White, Color::Green, Color::Yellow, Color::Orange};
+	Color faceColorOrder[] = { Color::Red, Color::Blue, Color::White, Color::Green, Color::Yellow, Color::Orange };
 	const int indexOnFace = index / FACE_SQ_COUNT;
-	Color ret = faceColorOrder[indexOnFace]; 
+	Color ret = faceColorOrder[indexOnFace];
 	return ret;
 
 }
@@ -49,9 +50,9 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	auto nextIndexDistance = [](int x) {
 		int indexOnFace = x % FACE_SQ_COUNT;
 		switch (indexOnFace) {
-		case 3: 
+		case 3:
 			return 1;
-		case 6: 
+		case 6:
 			return 3;
 		case 4:
 		case 1:
@@ -77,9 +78,9 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 	return ret;
 }
 
-void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
+void Cube::rotateFace(Color faceColor, int towards) {
 	std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
-
+	// this method is quite wierd but it's working
 	if (towards == 0)
 		return; // No need to do anything in this case 
 	else if (towards == 2) {
@@ -89,7 +90,7 @@ void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
 	}
 	else if (towards != -1 && towards != 1)
 		throw EZRubyException("Rotation count should be between -1 and 2 (-, + or ++)");
-	// At this stage after the above checks, towards can be either -1 or 1, by the way gonna test it too
+	// At this stage after the above checks, towards can be either -1 or 1
 
 	const size_t sideSqCount = 12;
 	std::array<int, sideSqCount> sideSquares;
@@ -123,37 +124,51 @@ void EzRuby::Cube::rotateFace(Color faceColor, int towards) {
 		throw EZRubyException("Wrong color");
 	} // TODO Check if nothing is wrong
 
-	{ // first step: side squares 
-		std::array<Color, sideSqCount> newPlacement{}; // new colors placement
-		const int gap = towards == 1 ? 3 : -3; // Depending if we are clockwise or counter-clockwise
-		if (towards == 1) { // clockwise
-			for (size_t i = 0; i < sideSqCount; i++) {
-				const int sqArrIndex = sideSquares[i];
-				const int npIndex = (i + gap + sideSqCount) % sideSqCount;
-				newPlacement[npIndex] = _sqArr[sqArrIndex];
-			}
-		}
+	std::array<int, FACE_SQ_COUNT> frontSquaresGap = { 0, 1, 1, 2, 3, -1, -1, -2 };
+	
+	auto stepFS = [&](size_t iterCount, int gap, std::function<int(int)> sqArrIndexLambda) {// front and sides
+		Color *newPlacement = new Color[iterCount]; // new colors placement
 
+		for (size_t i = 0; i < iterCount; i++) {
+			int sqArrIndex = sqArrIndexLambda(i);
+			int npIndex = (i + gap + iterCount) % iterCount;
+			newPlacement[npIndex] = _sqArr[sqArrIndex];
+		}
+		
 		// concrete new color attribution
-		for (size_t i = 0; i < sideSqCount; i++) {
-			const int sqArrIndex = sideSquares[i];
+		for (size_t i = 0; i < iterCount; i++) {
+			int sqArrIndex = sqArrIndexLambda(i);
 			Color colorAttrib = newPlacement[i];
 			_sqArr[sqArrIndex] = colorAttrib;
 		}
-	}
-	{ // second step : front squares
-		// TODO, but test previous first
-	}
+
+		delete[] newPlacement;
+	};
+
+	// step 1 - sides
+	int gap = 3 * towards;
+	auto step1SqArrIndex = [&](int i) { return sideSquares[i]; };
+	stepFS(sideSqCount, gap, step1SqArrIndex);
+
+	// step 2 - front
+	gap = 2 * towards;
+	auto step2SqArrIndex = [&](int i) {
+		int sqIndex = faceIndex * FACE_SQ_COUNT;
+		for (size_t j = 0; j <= i; j++) 
+			sqIndex += frontSquaresGap[j];
+		return sqIndex;
+	};
+	stepFS(FACE_SQ_COUNT, gap, step2SqArrIndex);
 }
 
 // order: blue red green orange, right if top side is yellow, left if white
 Color EzRuby::Cube::crossNextColor(Color color) const {
-	return Color::Blue;
+	return Color::Blue; // TODO: Question: is it really useful?
 }
 
 Color EzRuby::Cube::crossGreatestColor(Color color1, Color color2) const {
 	std::map<Color, int> sideColorOrder = {
-	{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 }};
+	{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 } };
 
 	int face1Rank = sideColorOrder[color1],
 		face2Rank = sideColorOrder[color2];

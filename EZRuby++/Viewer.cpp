@@ -67,7 +67,7 @@ int ViewerV1::showWindow()
 // ---------------------------------------------------------------------------------------------------------
 void ViewerV1::processInput(GLFWwindow* window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 }
 

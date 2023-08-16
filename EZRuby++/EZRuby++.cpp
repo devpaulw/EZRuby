@@ -15,10 +15,14 @@ int main() {
 		Color::Orange, Color::Red, Color::Red, Color::Red, Color::White, Color::Blue, Color::Red, Color::White
 	};
 	Cube testCube(testCubeArr);
+	//while (true) {
+	//	ViewerV1 viewer(testCube);
+	//	int result = viewer.showWindow();
+	//	testCube.rotateFace(Color::White, 2);
+	//}
 	Solver solver(testCube);
 	solver.getCubeSolution();
-
-	ViewerV1 viewer(testCubeArr);
+	ViewerV1 viewer(testCube);
 	int result = viewer.showWindow();
-	return result;
+	return 0;
 }
