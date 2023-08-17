@@ -9,7 +9,7 @@ using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
 	std::map<int, int> neighborMap = {
-	{1, 35}, {3, 9}, {4, 25}, {6, 17},
+	{1, 33}, {3, 9}, {4, 25}, {6, 17},
 	{9, 3}, {11, 36}, {12, 19}, {14, 43},
 	{17, 6}, {19, 12}, {20, 27}, {22, 41},
 	{25, 4}, {27, 20}, {28, 35}, {30, 44},
@@ -69,7 +69,7 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 		}
 	}
 	if (!noFailure)
-		throw EZRubyException();
+		throw EZRubyException("get edge pos failure");
 
 	// then, we determine on which face these indices belong
 	Color face1Color = indexBelongingFace(sq1Index);
@@ -79,13 +79,18 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 }
 
 void Cube::rotateFace(Color faceColor, int towards) {
-	std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
+	static bool nativeCall = true; // TEMP
+	if (nativeCall)
+		std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
+
 	// this method is quite wierd but it's working
 	if (towards == 0)
 		return; // No need to do anything in this case 
 	else if (towards == 2) {
+		nativeCall = false;
 		rotateFace(faceColor, 1);
 		rotateFace(faceColor, 1);
+		nativeCall = true;
 		return;
 	}
 	else if (towards != -1 && towards != 1)

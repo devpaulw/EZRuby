@@ -7,7 +7,7 @@ using namespace EzRuby;
 
 int main() {
 	std::array<Color, Cube::SQ_COUNT> testCubeArr = {
-		Color::Yellow, Color::Green, Color::Yellow, Color::Blue, Color::White, Color::Red, Color::Green, Color::Yellow,
+		Color::Yellow, Color::Green, Color::Red, Color::White, Color::Blue, Color::Yellow, Color::Green, Color::Yellow,
 		Color::Orange, Color::Blue, Color::Orange, Color::Orange, Color::Orange, Color::Red, Color::Green, Color::Blue,
 		Color::Blue, Color::Yellow, Color::Red, Color::Green, Color::White, Color::White, Color::Blue, Color::White,
 		Color::Green, Color::Yellow, Color::White, Color::Orange, Color::Orange, Color::Blue, Color::Red, Color::Green,

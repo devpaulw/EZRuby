@@ -1,6 +1,7 @@
 #include "Solver.h"
 #include <map>
 #include <iostream>
+#include "ezruby_exception.h"
 
 using namespace EzRuby;
 
@@ -13,7 +14,6 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
 	const int sideColorCount = 4;
-	for (size_t i = 0; i < 2; i++) // vely temp
 	{ // move 1, aiming to bring the edge towards yellow face
 		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
 			Color rotatingFace;
@@ -33,19 +33,19 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 		}
 	}
 
-	//{ // move 2
-	//  // technique: rotate until one of the edge square touches right face
-	//  // OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
-	//	int rot2Count = 0;
-	//	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
-	//	while (!edgePos.contains(crossColor)) {
-	//		_hCube.rotateFace(Color::Yellow, 1);
-	//		if (++rot2Count >= sideColorCount) {
-	//			throw std::exception("yellow face rotation count should not exceed 3");
-	//		}
-	//		edgePos = _hCube.getEdgePos(whiteColor, crossColor);
-	//	}
-	//}
+	{ // move 2
+	  // technique: rotate until one of the edge square touches right face
+	  // OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
+		int rot2Count = 0;
+		EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+		while (!edgePos.contains(crossColor)) {
+			_hCube.rotateFace(Color::Yellow, 1);
+			if (++rot2Count >= sideColorCount) {
+				throw EZRubyException("yellow face rotation count should not exceed 3");
+			}
+			edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+		}
+	}
 
 	//{ // move 3 
 	//	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
