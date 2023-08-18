@@ -41,7 +41,7 @@ void Solver::step1() { // TODO maybe, separate this step into 3 moves
 			edgePos = _hCube.getEdgePos(Color::White, crossColor);
 		}
 
-		// move 3, to place the side correctly on the cross
+		// move 3, to place the side correctly on the white cross
 		_hCube.rotateFace(crossColor, 2);
 
 		crossColor = crossNextColor(crossColor);
