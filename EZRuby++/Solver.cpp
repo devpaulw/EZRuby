@@ -7,7 +7,7 @@
 
 using namespace EzRuby;
 
-void Solver::step1() { // TODO maybe, separate this step into 3 moves
+void Solver::step1() {
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 	do {
@@ -31,11 +31,11 @@ void Solver::step1() { // TODO maybe, separate this step into 3 moves
 
 		// move 2, rotate until one of the edge square touches right face
 		// OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
-		int rot2Count = 0; // For checks
+		int rotCount = 0; // For checks
 		edgePos = _hCube.getEdgePos(Color::White, crossColor);
 		while (!edgePos.contains(crossColor)) {
 			_hCube.rotateFace(Color::Yellow, 1);
-			if (++rot2Count >= CROSS_COLOR_COUNT) {
+			if (++rotCount >= CROSS_COLOR_COUNT) {
 				throw EZRubyException("yellow face rotation count should not exceed 3");
 			}
 			edgePos = _hCube.getEdgePos(Color::White, crossColor);
@@ -48,26 +48,31 @@ void Solver::step1() { // TODO maybe, separate this step into 3 moves
 	} while (crossColor != startColor);
 }
 
-std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
+void Solver::step2()
+{
+}
+
+std::vector<MoveOrientation> Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
 	step1();
+	step2();
 
 	return std::vector<MoveOrientation>(); // temp
 }
 
-// order: red green orange blue, right if top side is yellow, left if white
+// order: red green orange blue, right if top side is white, left if yellow
 Color Solver::crossNextColor(Color color) {
 	std::map<Color, Color> nextColors = {
-		{Color::Red, Color::Green},
-		{Color::Green, Color::Orange},
-		{Color::Orange, Color::Blue},
-		{Color::Blue, Color::Red},
+		{Color::Red, Color::Blue},
+		{Color::Blue, Color::Orange},
+		{Color::Orange, Color::Green},
+		{Color::Green, Color::Red},
 	};
 
 	return nextColors[color];
 }
-// WARNING INVERSION
+
 Color Solver::crossGreatestColor(Color color1, Color color2) {
 	std::map<Color, int> crossColorOrder = {
 	{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 } };
