@@ -35,6 +35,8 @@ int ViewerV1::showWindow()
 		glfwTerminate();
 		return -1;
 	}
+
+	glfwSetWindowPos(_window, 200, 200);
 	glfwMakeContextCurrent(_window);
 	glfwSetFramebufferSizeCallback(_window, framebuffer_size_callback);
 

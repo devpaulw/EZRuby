@@ -5,6 +5,7 @@
 #include "ezruby_exception.h"
 #include <array>
 #include <functional>
+#include "Viewer.h"
 using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
@@ -28,11 +29,6 @@ Color EzRuby::Cube::indexBelongingFace(int index) const {
 	const int indexOnFace = index / FACE_SQ_COUNT;
 	Color ret = faceColorOrder[indexOnFace];
 	return ret;
-
-}
-
-inline EzRuby::Cube::Cube() {
-	{ for (size_t i = 0; i < SQ_COUNT; i++) _sqArr[i] = Color::Blue; } // Note: this is definitely temporary
 }
 
 EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
@@ -123,7 +119,7 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		break;
 	case Color::Orange:
 		faceIndex = 5;
-		sideSquares = { 21, 22, 23, 29, 30, 31, 2, 1, 0, 13, 14, 15 };
+		sideSquares = { 21, 22, 23, 29, 30, 31, 37, 38, 39, 13, 14, 15 };
 		break;
 	default:
 		throw EZRubyException("Wrong color");
@@ -164,27 +160,9 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		return sqIndex;
 	};
 	stepFS(FACE_SQ_COUNT, gap, step2SqArrIndex);
+
+	//ViewerV1 viewer2(*this);
+	//viewer2.showWindow();
 }
 
-// order: blue red green orange, right if top side is yellow, left if white
-Color EzRuby::Cube::crossNextColor(Color color) const {
-	return Color::Blue; // TODO: Question: is it really useful?
-}
 
-Color EzRuby::Cube::crossGreatestColor(Color color1, Color color2) const {
-	std::map<Color, int> sideColorOrder = {
-	{ Color::Blue, 0 },{ Color::Red, 1 },{ Color::Green, 2 },{ Color::Orange, 3 } };
-
-	int face1Rank = sideColorOrder[color1],
-		face2Rank = sideColorOrder[color2];
-
-	if ((color1 == Color::Orange && color2 == Color::Blue)
-		|| (color1 == Color::Blue && color2 == Color::Orange))
-		return Color::Orange; // exceptional because orange is actually lower than blue
-	else if (face1Rank < face2Rank)
-		return color1;
-	else if (face2Rank < face1Rank)
-		return color2;
-	else
-		throw std::exception();
-}

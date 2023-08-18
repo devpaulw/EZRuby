@@ -18,7 +18,7 @@ namespace EzRuby {
 		Color indexBelongingFace(int index) const;
 
 	public:
-		Cube();
+		Cube() = delete;
 		Cube(std::array<Color, SQ_COUNT> sqArr);
 		Cube(const Cube& cube) = default; // For now
 
@@ -27,9 +27,6 @@ namespace EzRuby {
 		// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 		EdgePosition getEdgePos(Color color1, Color color2) const;
 		void rotateFace(Color faceColor, int towards);
-		// order: blue red green orange, right if top side is yellow, left if white
-		Color crossNextColor(Color color) const;
-		Color crossGreatestColor(Color color1, Color color2) const;
 	};
 
 }

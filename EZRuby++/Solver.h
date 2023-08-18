@@ -6,9 +6,15 @@
 namespace EzRuby {
 	class Solver {
 	private:
+		static const int CROSS_COLOR_COUNT = 4;
+
 		Cube& _hCube;
 		std::vector<MoveOrientation> _solution;
 
+		// order: red green orange blue, right if top side is yellow, left if white
+		static Color crossNextColor(Color color);
+		static Color crossGreatestColor(Color color1, Color color2);
+		void step1();
 
 	public:
 		Solver() = delete;
