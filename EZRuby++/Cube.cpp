@@ -103,7 +103,7 @@ void Cube::rotateFace(Color faceColor, int towards) {
 	switch (faceColor) {
 	case Color::Red:
 		faceIndex = 0;
-		sideSquares = { 45, 46, 47, 26, 25, 24, 18, 17, 16, 10, 9, 8 };
+		sideSquares = { 34, 33, 32, 26, 25, 24, 18, 17, 16, 10, 9, 8 };
 		break;
 	case Color::Blue:
 		faceIndex = 1;

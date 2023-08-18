@@ -47,19 +47,19 @@ std::vector<MoveOrientation> EzRuby::Solver::getCubeSolution() {
 		}
 	}
 
-	//{ // move 3 
-	//	EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
+	{ // move 3 
+		EdgePosition edgePos = _hCube.getEdgePos(whiteColor, crossColor);
 
-	//	if (edgePos.face1Color != Color::Yellow) {
-	//		_hCube.rotateFace(crossColor, 1);
-	//		Color nextColor = _hCube.crossNextColor(crossColor);
-	//		_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
-	//		_hCube.rotateFace(Color::Yellow, 1);
-	//	}
+		if (edgePos.face1Color != Color::Yellow) {
+			_hCube.rotateFace(crossColor, 1);
+			Color nextColor = _hCube.crossNextColor(crossColor);
+			_hCube.rotateFace(nextColor, 1); // rotate right face (yellow up)
+			_hCube.rotateFace(Color::Yellow, 1);
+		}
 
-	//	// final move
-	//	_hCube.rotateFace(crossColor, 2);
-	//}
+		// final move
+		_hCube.rotateFace(crossColor, 2);
+	}
 
 	return std::vector<MoveOrientation>(); // temp
 }
