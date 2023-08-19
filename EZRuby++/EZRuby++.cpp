@@ -21,7 +21,10 @@ int main() {
 	//	testCube.rotateFace(Color::White, 2);
 	//}
 
-
+	int a, b;
+	testCube.cornerSqNeighbors(0, &a, &b);
+	std::cout << a << " & " << b << "\n";
+	return 0;
 	Solver solver(testCube);
 	solver.getCubeSolution();
 

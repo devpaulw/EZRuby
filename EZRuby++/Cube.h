@@ -1,6 +1,7 @@
 #pragma once
 #include "BasicTypes.h"
 #include "EdgePosition.h"
+#include "CornerPosition.h"
 #include <array>
 
 namespace EzRuby {
@@ -17,15 +18,20 @@ namespace EzRuby {
 		int edgeSqNeighbor(int sqIndex) const;
 		Color indexBelongingFace(int index) const;
 
+
 	public:
+		void cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const;
 		Cube() = delete;
 		Cube(std::array<Color, SQ_COUNT> sqArr);
 		Cube(const Cube& cube) = default; // For now
 
 		inline Color getColorAt(int index) const { return _sqArr[index]; }
+
 		// It returns where on which face color1 is located, same for color2.
 		// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 		EdgePosition getEdgePos(Color color1, Color color2) const;
+		CornerPosition getCornerPos(Color color1, Color color2, Color color3);
+
 		void rotateFace(Color faceColor, int towards);
 	};
 

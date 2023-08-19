@@ -10,15 +10,31 @@ using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
 	std::map<int, int> neighborMap = {
-	{1, 33}, {3, 9}, {4, 25}, {6, 17},
-	{9, 3}, {11, 36}, {12, 19}, {14, 43},
-	{17, 6}, {19, 12}, {20, 27}, {22, 41},
-	{25, 4}, {27, 20}, {28, 35}, {30, 44},
-	{33, 1}, {35, 28}, {36, 11}, {38, 46},
-	{41, 22}, {43, 14}, {44, 30}, {46, 38}
+		{1, 33}, {3, 9}, {4, 25}, {6, 17},
+		{9, 3}, {11, 36}, {12, 19}, {14, 43},
+		{17, 6}, {19, 12}, {20, 27}, {22, 41},
+		{25, 4}, {27, 20}, {28, 35}, {30, 44},
+		{33, 1}, {35, 28}, {36, 11}, {38, 46},
+		{41, 22}, {43, 14}, {44, 30}, {46, 38}
 	};
 
+	if (neighborMap.find(sqIndex) == neighborMap.end()) {
+		throw EZRubyException("This square index is not from an edge");
+	}
+
 	return neighborMap[sqIndex];
+}
+
+void Cube::cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const {
+	std::map<int, std::tuple<int, int>> neighborMap = {
+		{0, {8, 34}}, {2, {8, 32}},
+	};
+
+	if (neighborMap.find(sqIndex) == neighborMap.end()) {
+		throw EZRubyException("This square index is not from a corner");
+	}
+
+	std::tie(*neighbor1, *neighbor2) = neighborMap[sqIndex];
 }
 
 Color EzRuby::Cube::indexBelongingFace(int index) const {
@@ -38,10 +54,10 @@ EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
 // It returns where on which face color1 is located, same for color2.
 // TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 
-EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
+EdgePosition Cube::getEdgePos(Color color1, Color color2) const {
 	// we first get the indices where this edge is located
 	int sq1Index, sq2Index;
-	bool noFailure = false;
+	bool found = false;
 
 	auto nextIndexDistance = [](int x) {
 		int indexOnFace = x % FACE_SQ_COUNT;
@@ -57,20 +73,61 @@ EdgePosition EzRuby::Cube::getEdgePos(Color color1, Color color2) const {
 			throw EZRubyException("The square index is not from an edge");
 		}
 	};
-	for (sq1Index = 1; sq1Index < SQ_COUNT; sq1Index += nextIndexDistance(sq1Index)) {
+	for (sq1Index = 1; sq1Index < SQ_COUNT && !found; sq1Index += nextIndexDistance(sq1Index)) {
 		sq2Index = edgeSqNeighbor(sq1Index);
 		if (_sqArr[sq1Index] == color1 && _sqArr[sq2Index] == color2) {
-			noFailure = true;
-			break;
+			found = true;
 		}
 	}
-	if (!noFailure)
+	if (!found)
 		throw EZRubyException("get edge pos failure");
 
 	// then, we determine on which face these indices belong
 	Color face1Color = indexBelongingFace(sq1Index);
 	Color face2Color = indexBelongingFace(sq2Index);
 	EdgePosition ret(face1Color, face2Color);
+	return ret;
+}
+
+CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
+	// almost same principle than get edgePos
+	int sq1Index, sq2Index, sq3Index;
+	bool found = false;
+
+	auto nextIndexDistance = [](int x) {
+		int indexOnFace = x % FACE_SQ_COUNT;
+		switch (indexOnFace) {
+		case 0: return 2;
+		case 2: return 3;
+		case 5: return 2;
+		case 7: return 1;
+		default:
+			throw EZRubyException("The square index is not from a corner");
+		}
+	};
+
+	for (sq1Index = 0; sq1Index < SQ_COUNT && !found; sq1Index += nextIndexDistance(sq1Index)) {
+		cornerSqNeighbors(sq1Index, &sq2Index, &sq3Index);
+		if (_sqArr[sq1Index] == color1) {
+			if (_sqArr[sq2Index] == color3 && _sqArr[sq3Index] == color2) {
+				std::swap(sq2Index, sq3Index); // to keep the correct return order
+			}
+			else if (!(_sqArr[sq2Index] == color2 && _sqArr[sq3Index] == color3)) {
+				// this is if the second condition is not met, then the search continues
+				continue;
+			}
+			// at this pointer the corner has been found
+			found = true;
+		}
+	}
+	if (!found)
+		throw EZRubyException("get corner pos failure");
+
+	// then, we determine on which face these indices belong
+	Color face1Color = indexBelongingFace(sq1Index);
+	Color face2Color = indexBelongingFace(sq2Index);
+	Color face3Color = indexBelongingFace(sq3Index);
+	CornerPosition ret(face1Color, face2Color, face3Color);
 	return ret;
 }
 
@@ -160,9 +217,4 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		return sqIndex;
 	};
 	stepFS(FACE_SQ_COUNT, gap, step2SqArrIndex);
-
-	//ViewerV1 viewer2(*this);
-	//viewer2.showWindow();
 }
-
-
