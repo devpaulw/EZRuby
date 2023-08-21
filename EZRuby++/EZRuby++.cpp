@@ -14,7 +14,7 @@ int main() {
 		Color::Green, Color::White, Color::Green, Color::Blue, Color::Yellow, Color::Orange, Color::Yellow, Color::Yellow,
 		Color::Orange, Color::Red, Color::Red, Color::Red, Color::White, Color::Blue, Color::Red, Color::White
 	};
-	Cube testCube(testCubeArr);
+	Cube cube(testCubeArr);
 	//while (true) {
 	//	ViewerV1 viewer(testCube);
 	//	int result = viewer.showWindow();
@@ -22,14 +22,17 @@ int main() {
 	//}
 
 	int a, b;
-	testCube.cornerSqNeighbors(0, &a, &b);
-	std::cout << a << " & " << b << "\n";
-	return 0;
-	Solver solver(testCube);
-	solver.getCubeSolution();
+	cube.cornerSqNeighbors(16, &a, &b);
+	CornerPosition cp = cube.getCornerPos(Color::White, Color::Blue, Color::Red);
 
-	ViewerV1 viewer(testCube);
+	ViewerV1 viewer(cube);
 	viewer.showWindow();
+
+	return 0;
+
+	//Solver solver(cube);
+	//solver.getCubeSolution();
+
 	
 
 	//testCube.rotateFace(static_cast<Color>(4), 1);

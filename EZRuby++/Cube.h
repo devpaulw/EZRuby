@@ -18,7 +18,6 @@ namespace EzRuby {
 		int edgeSqNeighbor(int sqIndex) const;
 		Color indexBelongingFace(int index) const;
 
-
 	public:
 		void cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const;
 		Cube() = delete;

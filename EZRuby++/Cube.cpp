@@ -26,15 +26,29 @@ int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
 }
 
 void Cube::cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const {
-	std::map<int, std::tuple<int, int>> neighborMap = {
-		{0, {8, 34}}, {2, {8, 32}},
+	// less optimised than edgeSqNeighbor but simpler data type
+	const size_t cornerCount = 8,
+		cornerSqCount = 3;
+
+	int cornerIndices[cornerCount][cornerSqCount] = {
+		{16, 5, 10}, {18, 7, 24}, {21, 15, 40}, {23, 29, 42},
+		{32, 2, 26}, {34, 0, 8}, {37, 31, 47}, {39, 13, 45}
 	};
 
-	if (neighborMap.find(sqIndex) == neighborMap.end()) {
+	bool found = false;
+	for (int i = 0; i < cornerCount && !found; i++) {
+		for (int j = 0; j < cornerSqCount && !found; j++) {
+			if (cornerIndices[i][j] == sqIndex) {
+				*neighbor1 = cornerIndices[i][(j + 1) % 3];
+				*neighbor2 = cornerIndices[i][(j + 2) % 3];
+				found = true;
+			}
+		}
+	}
+	
+	if (!found) {
 		throw EZRubyException("This square index is not from a corner");
 	}
-
-	std::tie(*neighbor1, *neighbor2) = neighborMap[sqIndex];
 }
 
 Color EzRuby::Cube::indexBelongingFace(int index) const {
@@ -92,7 +106,6 @@ EdgePosition Cube::getEdgePos(Color color1, Color color2) const {
 CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
 	// almost same principle than get edgePos
 	int sq1Index, sq2Index, sq3Index;
-	bool found = false;
 
 	auto nextIndexDistance = [](int x) {
 		int indexOnFace = x % FACE_SQ_COUNT;
@@ -106,7 +119,7 @@ CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
 		}
 	};
 
-	for (sq1Index = 0; sq1Index < SQ_COUNT && !found; sq1Index += nextIndexDistance(sq1Index)) {
+	for (sq1Index = 0; sq1Index < SQ_COUNT; sq1Index += nextIndexDistance(sq1Index)) {
 		cornerSqNeighbors(sq1Index, &sq2Index, &sq3Index);
 		if (_sqArr[sq1Index] == color1) {
 			if (_sqArr[sq2Index] == color3 && _sqArr[sq3Index] == color2) {
@@ -117,9 +130,11 @@ CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
 				continue;
 			}
 			// at this pointer the corner has been found
-			found = true;
+			break;
 		}
 	}
+
+	bool found = sq1Index < SQ_COUNT; // because if it is not true it means the for loop didn't end by break instruction
 	if (!found)
 		throw EZRubyException("get corner pos failure");
 
