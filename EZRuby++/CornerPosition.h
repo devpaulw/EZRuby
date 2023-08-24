@@ -2,20 +2,21 @@
 #include "BasicTypes.h"
 
 namespace EzRuby {
-	class CornerPosition {
+	class ColorTriplet {
 	public:
-		Color face1Color;
-		Color face2Color;
-		Color face3Color;
+		Color first;
+		Color second;
+		Color third;
 
 		bool contains(Color color) {
-			return face1Color == color || face2Color == color || face3Color == color;
+			return first == color || second == color || third == color;
 		}
 
-		CornerPosition(const Color& face1Color, const Color& face2Color, const Color& face3Color)
-			: face1Color(face1Color), face2Color(face2Color), face3Color(face3Color) {
+		ColorTriplet(const Color& face1Color, const Color& face2Color, const Color& face3Color)
+			: first(face1Color), second(face2Color), third(face3Color) {
 		}
 
-		CornerPosition() = default;
+		ColorTriplet() = default;
 	};
 }
+

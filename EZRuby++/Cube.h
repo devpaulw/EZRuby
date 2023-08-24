@@ -28,8 +28,9 @@ namespace EzRuby {
 
 		// It returns where on which face color1 is located, same for color2.
 		// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
-		EdgePosition getEdgePos(Color color1, Color color2) const;
-		CornerPosition getCornerPos(Color color1, Color color2, Color color3);
+		ColorPair getEdgePosition(Color color1, Color color2) const;
+		ColorTriplet findCornerPosition(Color color1, Color color2, Color color3);
+		ColorTriplet getCornerAt(Color color1, Color color2, Color color3);
 
 		void rotateFace(Color faceColor, int towards);
 	};

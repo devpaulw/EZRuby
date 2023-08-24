@@ -1,4 +1,5 @@
 #pragma once
+constexpr bool LOG_OUTPUT = false;
 
 namespace EzRuby {
 	// TODO: Is it really a good filename?

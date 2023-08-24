@@ -21,19 +21,11 @@ int main() {
 	//	testCube.rotateFace(Color::White, 2);
 	//}
 
-	int a, b;
-	cube.cornerSqNeighbors(16, &a, &b);
-	CornerPosition cp = cube.getCornerPos(Color::White, Color::Blue, Color::Red);
+	Solver solver(cube);
+	solver.getCubeSolution();
 
-	ViewerV1 viewer(cube);
-	viewer.showWindow();
-
-	return 0;
-
-	//Solver solver(cube);
-	//solver.getCubeSolution();
-
-	
+	ViewerV1 viewer3(cube);
+	viewer3.showWindow();
 
 	//testCube.rotateFace(static_cast<Color>(4), 1);
 	//ViewerV1 viewer3(testCube);

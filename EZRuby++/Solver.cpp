@@ -11,34 +11,34 @@ void Solver::step1() {
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 	do {
-		std::cout << static_cast<int>(crossColor)<< "TWI\n"; // TEMP
-		EdgePosition edgePos = _hCube.getEdgePos(Color::White, crossColor);
+		if (LOG_OUTPUT) std::cout << static_cast<int>(crossColor)<< "TWI\n"; // TEMP
+		ColorPair edgePos = _hCube.getEdgePosition(Color::White, crossColor);
 
 		// move 1, aiming to bring the edge towards yellow face
 		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
 			if (edgePos.contains(Color::White)) {
-				Color rotatingFace = edgePos.face1Color == Color::White ? edgePos.face2Color : edgePos.face1Color; // rotating the color that is not white
+				Color rotatingFace = edgePos.first == Color::White ? edgePos.second : edgePos.first; // rotating the color that is not white
 				_hCube.rotateFace(rotatingFace, 1); // OPTI to be done here to lower rotation amount, so it's not just 1 but 1 or -1 
 			}
 
 			// it's now on the cross side
-			Color greatestColor = crossGreatestColor(edgePos.face1Color, edgePos.face2Color);
-			int dir = greatestColor == edgePos.face1Color ? 1 : -1;
-			_hCube.rotateFace(edgePos.face2Color, dir);
+			Color greatestColor = crossGreatestColor(edgePos.first, edgePos.second);
+			int dir = greatestColor == edgePos.first ? 1 : -1;
+			_hCube.rotateFace(edgePos.second, dir);
 			_hCube.rotateFace(Color::Yellow, dir);
-			_hCube.rotateFace(edgePos.face2Color, -dir); // OPTI again because it's not necessarily useful
+			_hCube.rotateFace(edgePos.second, -dir); // OPTI again because it's not necessarily useful
 		}
 
 		// move 2, rotate until one of the edge square touches right face
 		// OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
 		int rotCount = 0; // For checks
-		edgePos = _hCube.getEdgePos(Color::White, crossColor);
+		edgePos = _hCube.getEdgePosition(Color::White, crossColor);
 		while (!edgePos.contains(crossColor)) {
 			_hCube.rotateFace(Color::Yellow, 1);
 			if (++rotCount >= CROSS_COLOR_COUNT) {
 				throw EZRubyException("yellow face rotation count should not exceed 3");
 			}
-			edgePos = _hCube.getEdgePos(Color::White, crossColor);
+			edgePos = _hCube.getEdgePosition(Color::White, crossColor);
 		}
 
 		// move 3, to place the side correctly on the white cross
@@ -48,8 +48,36 @@ void Solver::step1() {
 	} while (crossColor != startColor);
 }
 
-void Solver::step2()
-{
+void Solver::step2() {
+	// let's go for this step
+	// first, if the corner doesn't touch the yellow face => place it right
+	const Color startColor = Color::Red;
+	Color crossColor = startColor;
+
+	do {
+		Color nextColor = crossNextColor(crossColor);
+		ColorTriplet cp = _hCube.findCornerPosition(Color::White, crossColor, nextColor);
+
+		if (cp.contains(Color::White)) {
+			_hCube.rotateFace(cp.second, 1);
+			size_t i;
+			for (i = 0; true; i++) {
+				if (i >= 4)
+					throw EZRubyException("Infinite loop");
+				
+				_hCube.rotateFace(Color::Yellow, -1);
+				auto guestCp = _hCube.getCornerAt(Color::Yellow, crossColor, nextColor);
+				if (!guestCp.contains(Color::White))
+					break;
+			}
+			std::cout << "A " << i << std::endl;
+			_hCube.rotateFace(cp.second, -1);
+			//_hCube.rotateFace(Color::Yellow, 1);
+			// TODO It doesn't work, to fix now.
+		}
+
+		//crossColor = nextColor; //TEMP to avoid 
+	} while (crossColor  != startColor);
 }
 
 std::vector<MoveOrientation> Solver::getCubeSolution() {

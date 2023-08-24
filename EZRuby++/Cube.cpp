@@ -68,7 +68,7 @@ EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
 // It returns where on which face color1 is located, same for color2.
 // TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 
-EdgePosition Cube::getEdgePos(Color color1, Color color2) const {
+ColorPair Cube::getEdgePosition(Color color1, Color color2) const {
 	// we first get the indices where this edge is located
 	int sq1Index, sq2Index;
 	bool found = false;
@@ -99,11 +99,11 @@ EdgePosition Cube::getEdgePos(Color color1, Color color2) const {
 	// then, we determine on which face these indices belong
 	Color face1Color = indexBelongingFace(sq1Index);
 	Color face2Color = indexBelongingFace(sq2Index);
-	EdgePosition ret(face1Color, face2Color);
+	ColorPair ret(face1Color, face2Color);
 	return ret;
 }
 
-CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
+ColorTriplet Cube::findCornerPosition(Color color1, Color color2, Color color3) {
 	// almost same principle than get edgePos
 	int sq1Index, sq2Index, sq3Index;
 
@@ -142,13 +142,23 @@ CornerPosition Cube::getCornerPos(Color color1, Color color2, Color color3) {
 	Color face1Color = indexBelongingFace(sq1Index);
 	Color face2Color = indexBelongingFace(sq2Index);
 	Color face3Color = indexBelongingFace(sq3Index);
-	CornerPosition ret(face1Color, face2Color, face3Color);
+	ColorTriplet ret(face1Color, face2Color, face3Color);
 	return ret;
+}
+
+ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3)
+{
+	/*using ct = std::tuple<Color, Color, Color>;
+
+	std::map<ct, std::tuple<int, int, int>> a = {
+		{{Color::White,Color::White,Color::White}, {0, 0, 0}}
+	};*/
+
 }
 
 void Cube::rotateFace(Color faceColor, int towards) {
 	static bool nativeCall = true; // TEMP
-	if (nativeCall)
+	if (nativeCall && LOG_OUTPUT)
 		std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
 
 	// this method is quite wierd but it's working

@@ -2,19 +2,19 @@
 #include "BasicTypes.h"
 
 namespace EzRuby {
-	class EdgePosition {
+	class ColorPair { // TODO Naming changed, so adapt all the variables.
 	public:
-		Color face1Color;
-		Color face2Color;
+		Color first;
+		Color second;
 
 		bool contains(Color color) {
-			return face1Color == color || face2Color == color;
+			return first == color || second == color;
 		}
 
-		EdgePosition(const Color& face1Color, const Color& face2Color)
-			: face1Color(face1Color), face2Color(face2Color) {
+		ColorPair(const Color& face1Color, const Color& face2Color)
+			: first(face1Color), second(face2Color) {
 		}
 
-		EdgePosition() = default;
+		ColorPair() = default;
 	};
 }
