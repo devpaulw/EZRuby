@@ -15,4 +15,19 @@ namespace EzRuby {
 	enum Color {
 		Red, Blue, White, Green, Yellow, Orange
 	};
+	//bool operator==(const Color& color1, const Color& color2) {
+	//	// Logique de comparaison personnalisée pour les couleurs
+	//	// Par exemple, comparer les valeurs entières des enum
+	//	return static_cast<int>(color1) == static_cast<int>(color2);
+	//}
+	//bool operator==(int color1, const Color& color2) {
+	//	// Logique de comparaison personnalisée pour les couleurs
+	//	// Par exemple, comparer les valeurs entières des enum
+	//	return color1 == static_cast<int>(color2);
+	//}
+	//bool operator==(const Color& color1, int color2) {
+	//	// Logique de comparaison personnalisée pour les couleurs
+	//	// Par exemple, comparer les valeurs entières des enum
+	//	return static_cast<int>(color1) == color2;
+	//}
 }

@@ -5,6 +5,8 @@
 #include "ezruby_exception.h"
 #include <array>
 #include <functional>
+#include <vector> // TEMP maybe temporary
+#include <set>
 #include "Viewer.h"
 using namespace EzRuby;
 
@@ -146,18 +148,75 @@ ColorTriplet Cube::findCornerPosition(Color color1, Color color2, Color color3) 
 	return ret;
 }
 
-ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3)
-{
-	/*using ct = std::tuple<Color, Color, Color>;
+ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3) {
+	using FaceColors = std::array<Color, 3>;
+	using Indices = std::array<int, 3>;
 
-	std::map<ct, std::tuple<int, int, int>> a = {
-		{{Color::White,Color::White,Color::White}, {0, 0, 0}}
-	};*/
+	std::map<FaceColors, Indices> cornerIndexMap = {
+		{{Color::Red,Color::Blue,Color::White}, {5, 16, 10}},
+		{{Color::Red,Color::White,Color::Green}, {7, 18, 24}},
+	};
+	
+	FaceColors colors = { color1, color2, color3 };
+	auto compareColors = [](Color c1, Color c2) {
+		return static_cast<int>(c1) < static_cast<int>(c2);
+	};
+	std::sort(colors.begin(), colors.end(), compareColors);
+	Indices indices = cornerIndexMap[colors];
+	std::vector<int> cornerIndices;
 
+	for (const Color& color : colors) {
+		// find color in faceColors
+		Color faceColor;
+		int fcIndex = -1;
+		do {
+			++fcIndex;
+			faceColor = colors[fcIndex];
+		} while (faceColor != color);
+
+		if (fcIndex > 2)
+			throw EZRubyException("fxIndex should not exceed 2");
+
+		int cubeIndex = indices[fcIndex];
+		cornerIndices.push_back(cubeIndex);
+	}
+
+	Color cornerColor1 = indexBelongingFace(cornerIndices[0]);
+	Color cornerColor2 = indexBelongingFace(cornerIndices[1]);
+	Color cornerColor3 = indexBelongingFace(cornerIndices[2]);
+
+	ColorTriplet ret(cornerColor1, cornerColor2, cornerColor3);
+	return ret;
+	// TODO This algo was made really fast, check it!!!
+
+	//auto getIndices = [&](const Color& c1, const Color& c2, const Color& c3) -> indices {
+	//	// Parcourir chaque entrée dans la map axl.
+	//	for (const auto& entry : axl) {
+	//		const faceColors& key = entry.first;
+	//		const indices& value = entry.second;
+
+	//		// Créer une copie de key et value que nous pouvons modifier.
+	//		faceColors keyCopy = key;
+	//		indices valueCopy = value;
+
+	//		// Rechercher chaque couleur dans la clé.
+	//		for (int i = 0; i < 3; ++i) {
+	//			// Si nous trouvons une correspondance pour toutes les couleurs ...
+	//			if ((keyCopy[i] == c1 && keyCopy[(i + 1) % 3] == c2 && keyCopy[(i + 2) % 3] == c3) ||
+	//				(keyCopy[i] == c3 && keyCopy[(i + 1) % 3] == c2 && keyCopy[(i + 2) % 3] == c1)) {
+	//				// ... alors retourner les indices dans le même ordre.
+	//				return { valueCopy[i], valueCopy[(i + 1) % 3], valueCopy[(i + 2) % 3] };
+	//			}
+	//		}
+	//	}
+
+	//	// Si aucune correspondance n'a été trouvée, retourner une valeur par défaut.
+	//	return { 0, 0, 0 };
+	//};
 }
 
 void Cube::rotateFace(Color faceColor, int towards) {
-	static bool nativeCall = true; // TEMP
+	static bool nativeCall = true;
 	if (nativeCall && LOG_OUTPUT)
 		std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
 
