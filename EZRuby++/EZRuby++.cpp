@@ -21,6 +21,11 @@ int main() {
 	//	testCube.rotateFace(Color::White, 2);
 	//}
 
+	//ColorTriplet triplet1 = cube.getCornerAt(Color::Red, Color::Blue, Color::White);
+	//ColorTriplet triplet2 = cube.getCornerAt(Color::Red, Color::White, Color::Green);
+	//ColorTriplet triplet3 = cube.getCornerAt(Color::Red, Color::White, Color::Blue);
+	//ColorTriplet triplet4 = cube.getCornerAt(Color::Yellow, Color::White, Color::Blue);
+
 	Solver solver(cube);
 	solver.getCubeSolution();
 

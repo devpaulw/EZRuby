@@ -1,5 +1,5 @@
 #pragma once
-constexpr bool LOG_OUTPUT = false;
+constexpr bool LOG_OUTPUT = true;
 
 namespace EzRuby {
 	// TODO: Is it really a good filename?
@@ -13,7 +13,7 @@ namespace EzRuby {
 	};
 
 	enum Color {
-		Red, Blue, White, Green, Yellow, Orange
+		Red = 0, Blue = 1, White = 2, Green = 3, Yellow = 4, Orange = 5
 	};
 	//bool operator==(const Color& color1, const Color& color2) {
 	//	// Logique de comparaison personnalisée pour les couleurs

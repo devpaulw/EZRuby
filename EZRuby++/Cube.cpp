@@ -1,17 +1,17 @@
 #include "Cube.h"
 #include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <iostream>
 #include "ezruby_exception.h"
 #include <array>
 #include <functional>
-#include <vector> // TEMP maybe temporary
-#include <set>
+#include <queue>
 #include "Viewer.h"
 using namespace EzRuby;
 
 int EzRuby::Cube::edgeSqNeighbor(int sqIndex) const {
-	std::map<int, int> neighborMap = {
+	static std::unordered_map<int, int> neighborMap = {
 		{1, 33}, {3, 9}, {4, 25}, {6, 17},
 		{9, 3}, {11, 36}, {12, 19}, {14, 43},
 		{17, 6}, {19, 12}, {20, 27}, {22, 41},
@@ -47,7 +47,7 @@ void Cube::cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const 
 			}
 		}
 	}
-	
+
 	if (!found) {
 		throw EZRubyException("This square index is not from a corner");
 	}
@@ -70,7 +70,7 @@ EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
 // It returns where on which face color1 is located, same for color2.
 // TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
 
-ColorPair Cube::getEdgePosition(Color color1, Color color2) const {
+ColorPair Cube::locateEdgePos(Color color1, Color color2) const {
 	// we first get the indices where this edge is located
 	int sq1Index, sq2Index;
 	bool found = false;
@@ -88,7 +88,7 @@ ColorPair Cube::getEdgePosition(Color color1, Color color2) const {
 		default:
 			throw EZRubyException("The square index is not from an edge");
 		}
-	};
+		};
 	for (sq1Index = 1; sq1Index < SQ_COUNT && !found; sq1Index += nextIndexDistance(sq1Index)) {
 		sq2Index = edgeSqNeighbor(sq1Index);
 		if (_sqArr[sq1Index] == color1 && _sqArr[sq2Index] == color2) {
@@ -105,7 +105,7 @@ ColorPair Cube::getEdgePosition(Color color1, Color color2) const {
 	return ret;
 }
 
-ColorTriplet Cube::findCornerPosition(Color color1, Color color2, Color color3) {
+ColorTriplet Cube::locateCornerPos(Color color1, Color color2, Color color3) const {
 	// almost same principle than get edgePos
 	int sq1Index, sq2Index, sq3Index;
 
@@ -119,7 +119,7 @@ ColorTriplet Cube::findCornerPosition(Color color1, Color color2, Color color3) 
 		default:
 			throw EZRubyException("The square index is not from a corner");
 		}
-	};
+		};
 
 	for (sq1Index = 0; sq1Index < SQ_COUNT; sq1Index += nextIndexDistance(sq1Index)) {
 		cornerSqNeighbors(sq1Index, &sq2Index, &sq3Index);
@@ -148,71 +148,52 @@ ColorTriplet Cube::findCornerPosition(Color color1, Color color2, Color color3) 
 	return ret;
 }
 
-ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3) {
-	using FaceColors = std::array<Color, 3>;
-	using Indices = std::array<int, 3>;
+ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3) const {
+	const size_t cornerSqCount = 3;
+	using FaceColors = std::array<Color, cornerSqCount>;
+	using CornerIndices = std::array<int, cornerSqCount>;
 
-	std::map<FaceColors, Indices> cornerIndexMap = {
-		{{Color::Red,Color::Blue,Color::White}, {5, 16, 10}},
+	static std::map<FaceColors, CornerIndices> cornerIndexMap = { // face colors have to be sorted!!
+		// white
+		{{Color::Red,Color::Blue,Color::White}, {5, 10, 16}},
 		{{Color::Red,Color::White,Color::Green}, {7, 18, 24}},
+		{{Color::White,Color::Green,Color::Orange}, {23, 29, 42}},
+		{{Color::Blue,Color::White,Color::Orange}, {15, 21, 40}},
+		// yellow
+		{{Color::Red,Color::Green,Color::Yellow}, {2, 26, 32}},
+		{{Color::Red,Color::Blue,Color::Yellow}, {0, 8, 34}},
+		{{Color::Blue,Color::Yellow,Color::Orange}, {13, 39, 45}},
+		{{Color::Green,Color::Yellow,Color::Orange}, {31, 37, 47}},
 	};
-	
-	FaceColors colors = { color1, color2, color3 };
-	auto compareColors = [](Color c1, Color c2) {
-		return static_cast<int>(c1) < static_cast<int>(c2);
-	};
-	std::sort(colors.begin(), colors.end(), compareColors);
-	Indices indices = cornerIndexMap[colors];
-	std::vector<int> cornerIndices;
 
-	for (const Color& color : colors) {
-		// find color in faceColors
-		Color faceColor;
+	FaceColors unsortedColors = { color1, color2, color3 };
+	FaceColors sortedColors = { color1, color2, color3 };
+	auto compareColors = [](const Color& c1, const Color& c2) {
+		return static_cast<int>(c1) < static_cast<int>(c2);
+		};
+	std::sort(sortedColors.begin(), sortedColors.end(), compareColors);
+	if (cornerIndexMap.find(sortedColors) == cornerIndexMap.end())
+		throw EZRubyException("getCornerAt: this position doesn't exist");
+	CornerIndices indices = cornerIndexMap[sortedColors];
+	Color cornerColors[cornerSqCount]{}; // the indices of the corner we are going to return
+
+	for (size_t i = 0; i < cornerSqCount; i++) {
+		const Color& unsortedColor = unsortedColors[i];
+		Color sortedColor;
 		int fcIndex = -1;
 		do {
 			++fcIndex;
-			faceColor = colors[fcIndex];
-		} while (faceColor != color);
-
-		if (fcIndex > 2)
-			throw EZRubyException("fxIndex should not exceed 2");
+			if (fcIndex >= cornerSqCount) 
+				throw EZRubyException("fxIndex should not exceed 2");
+			sortedColor = sortedColors[fcIndex];
+		} while (unsortedColor != sortedColor);
 
 		int cubeIndex = indices[fcIndex];
-		cornerIndices.push_back(cubeIndex);
+		cornerColors[i] = getColorAt(cubeIndex);
 	}
 
-	Color cornerColor1 = indexBelongingFace(cornerIndices[0]);
-	Color cornerColor2 = indexBelongingFace(cornerIndices[1]);
-	Color cornerColor3 = indexBelongingFace(cornerIndices[2]);
-
-	ColorTriplet ret(cornerColor1, cornerColor2, cornerColor3);
+	ColorTriplet ret(cornerColors[0], cornerColors[1], cornerColors[2]);
 	return ret;
-	// TODO This algo was made really fast, check it!!!
-
-	//auto getIndices = [&](const Color& c1, const Color& c2, const Color& c3) -> indices {
-	//	// Parcourir chaque entrée dans la map axl.
-	//	for (const auto& entry : axl) {
-	//		const faceColors& key = entry.first;
-	//		const indices& value = entry.second;
-
-	//		// Créer une copie de key et value que nous pouvons modifier.
-	//		faceColors keyCopy = key;
-	//		indices valueCopy = value;
-
-	//		// Rechercher chaque couleur dans la clé.
-	//		for (int i = 0; i < 3; ++i) {
-	//			// Si nous trouvons une correspondance pour toutes les couleurs ...
-	//			if ((keyCopy[i] == c1 && keyCopy[(i + 1) % 3] == c2 && keyCopy[(i + 2) % 3] == c3) ||
-	//				(keyCopy[i] == c3 && keyCopy[(i + 1) % 3] == c2 && keyCopy[(i + 2) % 3] == c1)) {
-	//				// ... alors retourner les indices dans le même ordre.
-	//				return { valueCopy[i], valueCopy[(i + 1) % 3], valueCopy[(i + 2) % 3] };
-	//			}
-	//		}
-	//	}
-
-	//	// Si aucune correspondance n'a été trouvée, retourner une valeur par défaut.
-	//	return { 0, 0, 0 };
-	//};
 }
 
 void Cube::rotateFace(Color faceColor, int towards) {
@@ -236,47 +217,31 @@ void Cube::rotateFace(Color faceColor, int towards) {
 
 	const size_t sideSqCount = 12;
 	std::array<int, sideSqCount> sideSquares;
-	int faceIndex;
-	switch (faceColor) {
-	case Color::Red:
-		faceIndex = 0;
-		sideSquares = { 34, 33, 32, 26, 25, 24, 18, 17, 16, 10, 9, 8 };
-		break;
-	case Color::Blue:
-		faceIndex = 1;
-		sideSquares = { 0, 3, 5, 16, 19, 21, 40, 43, 45, 39, 36, 34 };
-		break;
-	case Color::White:
-		faceIndex = 2;
-		sideSquares = { 5, 6, 7, 24, 27, 29, 42, 41, 40, 15, 12, 10 };
-		break;
-	case Color::Green:
-		faceIndex = 3;
-		sideSquares = { 7, 4, 2, 32, 35, 37, 47, 44, 42, 23, 20, 18 };
-		break;
-	case Color::Yellow:
-		faceIndex = 4;
-		sideSquares = { 2, 1, 0, 8, 11, 13, 45, 46, 47, 31, 28, 26 };
-		break;
-	case Color::Orange:
-		faceIndex = 5;
-		sideSquares = { 21, 22, 23, 29, 30, 31, 37, 38, 39, 13, 14, 15 };
-		break;
-	default:
-		throw EZRubyException("Wrong color");
-	} // TODO Check if nothing is wrong
-
+	int faceIndex = static_cast<int>(faceColor);
 	std::array<int, FACE_SQ_COUNT> frontSquaresGap = { 0, 1, 1, 2, 3, -1, -1, -2 };
-	
-	auto stepFS = [&](size_t iterCount, int gap, std::function<int(int)> sqArrIndexLambda) {// front and sides
-		Color *newPlacement = new Color[iterCount]; // new colors placement
 
+	static std::unordered_map<Color, std::array<int, sideSqCount>> colorMap = {
+		{Color::Red, {34, 33, 32, 26, 25, 24, 18, 17, 16, 10, 9, 8}},
+		{Color::Blue, {0, 3, 5, 16, 19, 21, 40, 43, 45, 39, 36, 34}},
+		{Color::White, {5, 6, 7, 24, 27, 29, 42, 41, 40, 15, 12, 10}},
+		{Color::Green, {7, 4, 2, 32, 35, 37, 47, 44, 42, 23, 20, 18}},
+		{Color::Yellow, {2, 1, 0, 8, 11, 13, 45, 46, 47, 31, 28, 26}},
+		{Color::Orange, {21, 22, 23, 29, 30, 31, 37, 38, 39, 13, 14, 15}}
+	};
+
+	if (colorMap.find(faceColor) != colorMap.end())
+		sideSquares = colorMap[faceColor];
+	else
+		throw EZRubyException("Wrong color");
+
+	auto stepFS = [&](size_t iterCount, int gap, std::function<int(int)> sqArrIndexLambda) {// front and sides
+		Color* newPlacement = new Color[iterCount]; // new colors placement
 		for (size_t i = 0; i < iterCount; i++) {
 			int sqArrIndex = sqArrIndexLambda(i);
 			int npIndex = (i + gap + iterCount) % iterCount;
 			newPlacement[npIndex] = _sqArr[sqArrIndex];
 		}
-		
+
 		// concrete new color attribution
 		for (size_t i = 0; i < iterCount; i++) {
 			int sqArrIndex = sqArrIndexLambda(i);
@@ -285,7 +250,7 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		}
 
 		delete[] newPlacement;
-	};
+		};
 
 	// step 1 - sides
 	int gap = 3 * towards;
@@ -296,9 +261,9 @@ void Cube::rotateFace(Color faceColor, int towards) {
 	gap = 2 * towards;
 	auto step2SqArrIndex = [&](int i) {
 		int sqIndex = faceIndex * FACE_SQ_COUNT;
-		for (size_t j = 0; j <= i; j++) 
+		for (size_t j = 0; j <= i; j++)
 			sqIndex += frontSquaresGap[j];
 		return sqIndex;
-	};
+		};
 	stepFS(FACE_SQ_COUNT, gap, step2SqArrIndex);
 }
