@@ -51,36 +51,49 @@ void Solver::step1() {
 void Solver::step2() {
 	// let's go for this step
 	// first, if the corner doesn't touch the yellow face => place it right
-	const Color startColor = Color::Blue;
+	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 
 	do {
 		Color nextColor = crossNextColor(crossColor);
 
 		// move 1
-		ColorTriplet currentCorner = _hCube.getCornerAt(Color::White, crossColor, nextColor);
+		ColorTriplet currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
 		if (currentCorner.contains(Color::White)) {
-			_hCube.rotateFace(crossColor, 1);
-			size_t i;
-			for (i = 0; true; i++) {
+			// HTBD If ever we use this "extract cross colors from corner" way, do a method for that
+			Color cc1 = (currentCorner.first == White) ? currentCorner.second : currentCorner.first;
+			Color cc2 = (currentCorner.first == White || currentCorner.second == White) ? currentCorner.third : currentCorner.second;
+			Color faceToRotate = crossGreatestColor(cc1, cc2);
+
+			_hCube.rotateFace(faceToRotate, -1);
+			for (size_t i = 0; true; i++) {
 				if (i >= 4)
 					throw EZRubyException("Infinite loop");
 				
 				_hCube.rotateFace(Color::Yellow, -1);
-				auto guestCp = _hCube.getCornerAt(Color::Yellow, crossColor, nextColor);
+				auto guestCp = _hCube.getCornerAt(Color::Yellow, cc1, cc2);
 				if (!guestCp.contains(Color::White))
 					break;
 			}
-
-			
-			_hCube.rotateFace(crossColor, -1);
+			_hCube.rotateFace(faceToRotate, 1);
 			//_hCube.rotateFace(Color::Yellow, 1);
 		}
 
 		// move 2
+		currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
+		while (!(currentCorner.contains(crossColor) && currentCorner.contains(nextColor))) {
+			_hCube.rotateFace(Color::Yellow, 1);
+			currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
+		}
 
+		// move 3
+		// TODO 3 cases to handle, either:
+		// - white touches yellow
+		// - white touches crossColor (leftColor)
+		// - white touches nextColor (rightColor)
+		// then just do a few moves, and it's all right.
 
-		crossColor = nextColor; //TEMP to avoid 
+		//crossColor = nextColor; //TEMP to avoid 
 	} while (crossColor  != startColor);
 }
 

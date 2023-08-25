@@ -12,6 +12,7 @@ namespace EzRuby {
 		std::vector<MoveOrientation> _solution;
 
 		// order: red green orange blue, right if top side is white, left if yellow
+		//static ColorPair extractCrossColors(Color color1, Color color2, Color color3);
 		static Color crossNextColor(Color color);
 		static Color crossGreatestColor(Color color1, Color color2);
 		void step1();

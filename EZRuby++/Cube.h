@@ -31,7 +31,7 @@ namespace EzRuby {
 		ColorPair locateEdgePos(Color color1, Color color2) const;
 		ColorTriplet locateCornerPos(Color color1, Color color2, Color color3) const;
 		ColorTriplet getCornerAt(Color color1, Color color2, Color color3) const;
-		// TODO Make a method that returns a "face index" which is static_cast<int> of Color
+		// HTBD Make a method that returns a "face index" which is static_cast<int> of Color
 
 		void rotateFace(Color faceColor, int towards);
 	};
