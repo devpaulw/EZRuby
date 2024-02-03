@@ -27,7 +27,7 @@ void Solver::step1() {
 			_hCube.performRotationSequence({
 				{ edgePos.second, dir },
 				{ Color::Yellow, dir },
-				{ edgePos.second, -dir } }); 
+				{ edgePos.second, -dir } });
 			// OPTI again because it's not necessarily useful
 		}
 
@@ -180,6 +180,86 @@ void Solver::step3() {
 	} while (crossColor != startColor);
 }
 
+void Solver::step4() {
+	// 1. Identify yellow face pattern
+	const Color startLeftColor = Color::Green;
+	const Color startRightColor = crossNextColor(startLeftColor);
+	Color crossColor = startRightColor;
+	int yellowPattern = 0b0;
+
+	for (int i = 0b1000; true; i /= 0b10) {
+		ColorPair edgePos = _hCube.locateEdgePos(Color::Yellow, crossColor);
+		if (edgePos.first == Color::Yellow)
+			yellowPattern += i;
+
+		if ((crossColor = crossNextColor(crossColor)) == startRightColor)
+			break;
+	}
+
+	// 2. Identify pattern type
+	enum PatternType { Notch, Line, Point };
+	PatternType patternType{};
+
+	switch (yellowPattern) {
+	case 0b0000:
+		patternType = PatternType::Point;
+		break;
+	case 0b0101:
+		patternType = PatternType::Line;
+		break;
+	case 0b1010:
+		patternType = PatternType::Line;
+		_hCube.performRotation(Color::Yellow, -1);
+		break;
+	case 0b0011:
+		patternType = PatternType::Notch;
+		break;
+	case 0b0110:
+		patternType = PatternType::Notch;
+		_hCube.performRotation(Color::Yellow, -1);
+		break;
+	case 0b1001:
+		patternType = PatternType::Notch;
+		_hCube.performRotation(Color::Yellow, 1);
+		break;
+	case 0b1100:
+		patternType = PatternType::Notch;
+		_hCube.performRotation(Color::Yellow, 2);
+		break;
+	default:
+		throw std::exception("unknown yellow pattern");
+	}
+
+	// 3. Do the right move knowing the pattern type
+	switch (patternType) {
+	case PatternType::Point:
+	case PatternType::Line:
+		// FRUR'U'F'
+		_hCube.performRotationSequence({
+			{ startRightColor, 1 },
+			{ startLeftColor, 1 },
+			{ Color::Yellow, 1 },
+			{ startLeftColor, -1 },
+			{ Color::Yellow, -1 },
+			{ startRightColor, -1 } });
+
+		if (patternType == PatternType::Point) {
+			step4();
+		}
+		break;
+	case PatternType::Notch:
+		// FURU'R'F'
+		_hCube.performRotationSequence({
+			{ startRightColor, 1 },
+			{ Color::Yellow, 1 },
+			{ startLeftColor, 1 },
+			{ Color::Yellow, -1 },
+			{ startLeftColor, -1 },
+			{ startRightColor, -1 } });
+		break;
+	}
+}
+
 std::vector<MoveOrientation> Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
@@ -187,6 +267,7 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	step1();
 	step2();
 	step3();
+	step4();
 
 	return std::vector<MoveOrientation>(); // temp
 }

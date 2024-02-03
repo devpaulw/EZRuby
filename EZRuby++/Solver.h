@@ -18,6 +18,7 @@ namespace EzRuby {
 		void step1();
 		void step2();
 		void step3();
+		void step4();
 
 	public:
 		Solver() = delete;

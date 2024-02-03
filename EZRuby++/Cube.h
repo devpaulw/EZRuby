@@ -18,9 +18,9 @@ namespace EzRuby {
 		// Edge square neighbor
 		int edgeSqNeighbor(int sqIndex) const;
 		Color indexBelongingFace(int index) const;
+		void cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const;
 
 	public:
-		void cornerSqNeighbors(int sqIndex, int* neighbor1, int* neighbor2) const;
 		Cube() = delete;
 		Cube(std::array<Color, SQ_COUNT> sqArr);
 		Cube(const Cube& cube) = default; // For now
