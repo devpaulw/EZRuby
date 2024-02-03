@@ -3,6 +3,7 @@
 #include "EdgePosition.h"
 #include "CornerPosition.h"
 #include <array>
+#include <initializer_list>
 
 namespace EzRuby {
 	class Cube {
@@ -33,7 +34,8 @@ namespace EzRuby {
 		ColorTriplet getCornerAt(Color color1, Color color2, Color color3) const;
 		// HTBD Make a method that returns a "face index" which is static_cast<int> of Color
 
-		void rotateFace(Color faceColor, int towards);
+		void performRotation(Color faceColor, int towards);
+		void performRotationSequence(std::initializer_list<Rotation> rotations);
 	};
 
 }

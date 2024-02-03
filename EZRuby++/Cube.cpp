@@ -143,6 +143,7 @@ ColorTriplet Cube::locateCornerPos(Color color1, Color color2, Color color3) con
 	// then, we determine on which face these indices belong
 	Color face1Color = indexBelongingFace(sq1Index);
 	Color face2Color = indexBelongingFace(sq2Index);
+
 	Color face3Color = indexBelongingFace(sq3Index);
 	ColorTriplet ret(face1Color, face2Color, face3Color);
 	return ret;
@@ -196,7 +197,7 @@ ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3) const {
 	return ret;
 }
 
-void Cube::rotateFace(Color faceColor, int towards) {
+void Cube::performRotation(Color faceColor, int towards) {
 	static bool nativeCall = true;
 	if (nativeCall && LOG_OUTPUT)
 		std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
@@ -206,8 +207,8 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		return; // No need to do anything in this case 
 	else if (towards == 2) {
 		nativeCall = false;
-		rotateFace(faceColor, 1);
-		rotateFace(faceColor, 1);
+		performRotation(faceColor, 1);
+		performRotation(faceColor, 1);
 		nativeCall = true;
 		return;
 	}
@@ -266,4 +267,10 @@ void Cube::rotateFace(Color faceColor, int towards) {
 		return sqIndex;
 		};
 	stepFS(FACE_SQ_COUNT, gap, step2SqArrIndex);
+}
+
+void Cube::performRotationSequence(std::initializer_list<Rotation> rotations) {
+	for (const Rotation& rotation : rotations) {
+		this->performRotation(rotation.faceColor, rotation.towards);
+	}
 }

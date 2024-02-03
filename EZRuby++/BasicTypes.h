@@ -15,6 +15,11 @@ namespace EzRuby {
 	enum Color {
 		Red = 0, Blue = 1, White = 2, Green = 3, Yellow = 4, Orange = 5
 	};
+
+	struct Rotation {
+		Color faceColor;
+		int towards;
+	};
 	//bool operator==(const Color& color1, const Color& color2) {
 	//	// Logique de comparaison personnalisée pour les couleurs
 	//	// Par exemple, comparer les valeurs entières des enum
