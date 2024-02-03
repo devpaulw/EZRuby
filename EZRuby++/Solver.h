@@ -15,10 +15,11 @@ namespace EzRuby {
 		//static ColorPair extractCrossColors(Color color1, Color color2, Color color3);
 		static Color crossNextColor(Color color);
 		static Color crossGreatestColor(Color color1, Color color2);
-		void step1();
-		void step2();
-		void step3();
-		void step4();
+		void whiteCrossStep();
+		void whiteCornersStep();
+		void middleLayerStep();
+		void yellowCrossStep();
+		void edgeIntegrityStep();
 
 	public:
 		Solver() = delete;

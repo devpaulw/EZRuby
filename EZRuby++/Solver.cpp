@@ -7,7 +7,7 @@
 
 using namespace EzRuby;
 
-void Solver::step1() {
+void Solver::whiteCrossStep() {
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 	do {
@@ -50,7 +50,7 @@ void Solver::step1() {
 	} while (crossColor != startColor);
 }
 
-void Solver::step2() {
+void Solver::whiteCornersStep() {
 	// first, if the corner doesn't touch the yellow face => place it right
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
@@ -118,7 +118,7 @@ void Solver::step2() {
 	} while (crossColor != startColor);
 }
 
-void Solver::step3() {
+void Solver::middleLayerStep() {
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 	// HTBD: because this scheme is everywhere, do something to do some kind of lambda 
@@ -180,7 +180,7 @@ void Solver::step3() {
 	} while (crossColor != startColor);
 }
 
-void Solver::step4() {
+void Solver::yellowCrossStep() {
 	// 1. Identify yellow face pattern
 	const Color startLeftColor = Color::Green;
 	const Color startRightColor = crossNextColor(startLeftColor);
@@ -244,7 +244,7 @@ void Solver::step4() {
 			{ startRightColor, -1 } });
 
 		if (patternType == PatternType::Point) {
-			step4();
+			yellowCrossStep();
 		}
 		break;
 	case PatternType::Notch:
@@ -260,14 +260,17 @@ void Solver::step4() {
 	}
 }
 
+void Solver::edgeIntegrityStep() {
+
+}
+
 std::vector<MoveOrientation> Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
-	_hCube.locateEdgePos(Color::Orange, Color::Blue);
-	step1();
-	step2();
-	step3();
-	step4();
+	whiteCrossStep();
+	whiteCornersStep();
+	middleLayerStep();
+	yellowCrossStep();
 
 	return std::vector<MoveOrientation>(); // temp
 }
