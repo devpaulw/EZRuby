@@ -73,7 +73,6 @@ EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
 ColorPair Cube::locateEdgePos(Color color1, Color color2) const {
 	// we first get the indices where this edge is located
 	int sq1Index, sq2Index;
-	bool found = false;
 
 	auto nextIndexDistance = [](int x) {
 		int indexOnFace = x % FACE_SQ_COUNT;
@@ -89,13 +88,13 @@ ColorPair Cube::locateEdgePos(Color color1, Color color2) const {
 			throw EZRubyException("The square index is not from an edge");
 		}
 		};
-	for (sq1Index = 1; sq1Index < SQ_COUNT && !found; sq1Index += nextIndexDistance(sq1Index)) {
+	for (sq1Index = 1; true; sq1Index += nextIndexDistance(sq1Index)) {
 		sq2Index = edgeSqNeighbor(sq1Index);
 		if (_sqArr[sq1Index] == color1 && _sqArr[sq2Index] == color2) {
-			found = true;
+			break; // found
 		}
 	}
-	if (!found)
+	if (sq1Index >= SQ_COUNT)
 		throw EZRubyException("get edge pos failure");
 
 	// then, we determine on which face these indices belong
@@ -184,7 +183,7 @@ ColorTriplet Cube::getCornerAt(Color color1, Color color2, Color color3) const {
 		int fcIndex = -1;
 		do {
 			++fcIndex;
-			if (fcIndex >= cornerSqCount) 
+			if (fcIndex >= cornerSqCount)
 				throw EZRubyException("fxIndex should not exceed 2");
 			sortedColor = sortedColors[fcIndex];
 		} while (unsortedColor != sortedColor);

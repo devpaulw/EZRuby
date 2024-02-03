@@ -27,8 +27,8 @@ void Solver::step1() {
 			_hCube.performRotationSequence({
 				{ edgePos.second, dir },
 				{ Color::Yellow, dir },
-				{ edgePos.second, -dir },
-				}); // OPTI again because it's not necessarily useful
+				{ edgePos.second, -dir } }); 
+			// OPTI again because it's not necessarily useful
 		}
 
 		// move 2, rotate until one of the edge square touches right face
@@ -51,7 +51,6 @@ void Solver::step1() {
 }
 
 void Solver::step2() {
-	// let's go for this step
 	// first, if the corner doesn't touch the yellow face => place it right
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
@@ -59,7 +58,7 @@ void Solver::step2() {
 	do {
 		Color nextColor = crossNextColor(crossColor);
 
-		// move 1 - remove corner from a corner (especially when wrong one, or displaced)
+		// move 1 - remove corner from crown (especially when wrong one, or displaced)
 		ColorTriplet currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
 		if (currentCorner.contains(Color::White)) {
 			// HTBD If ever we use this "extract cross colors from corner" way, do a method for that
@@ -98,35 +97,96 @@ void Solver::step2() {
 				{ Color::Yellow, -2 },
 				{ nextColor, -1 },
 				{ Color::Yellow, 1 },
-				{ nextColor, 1 }
-				});
+				{ nextColor, 1 } });
 		}
 		else if (currentCorner.first == crossColor) {
 			// white touches crossColor (leftColor)
 			_hCube.performRotationSequence({
 				{ crossColor, 1 },
 				{ Color::Yellow, 1 },
-				{ crossColor, -1 }
-				});
+				{ crossColor, -1 } });
 		}
 		else if (currentCorner.first == nextColor) {
 			// white touches nextColor (rightColor)
 			_hCube.performRotationSequence({
 				{ nextColor, -1 },
 				{ Color::Yellow, -1 },
-				{ nextColor, 1 }
-				});
+				{ nextColor, 1 } });
 		}
 
 		crossColor = nextColor; //TEMP to avoid 
 	} while (crossColor != startColor);
 }
 
+void Solver::step3() {
+	const Color startColor = Color::Red;
+	Color crossColor = startColor;
+	// HTBD: because this scheme is everywhere, do something to do some kind of lambda 
+	// (give directly the crossColor and nextColor in function arguments)
+
+	do {
+		Color nextColor = crossNextColor(crossColor);
+
+		// move 1 - unlock corner if trapped
+		// OPTI no need to unlock if already well placed (to check)
+		ColorPair edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+		if (!edgePos.contains(Color::Yellow)) {
+			Color trapRightFace = crossGreatestColor(edgePos.first, edgePos.second),
+				trapLeftFace = trapRightFace == edgePos.first ? edgePos.second : edgePos.first;
+
+			_hCube.performRotationSequence({
+				{ trapLeftFace, 1 },
+				{ Color::Yellow, 1 },
+				{ trapLeftFace, -1 },
+				{ Color::Yellow, -1 },
+				{ trapRightFace, -1 },
+				{ Color::Yellow, -1 },
+				{ trapRightFace, 1 } });
+		}
+
+		// move 2 - place the corner
+		edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+		// side color is the one that is not in the yellow face
+		Color edgeColorOnSide = edgePos.first == Color::Yellow ? nextColor : crossColor;
+		while (!edgePos.contains(edgeColorOnSide)) {
+			_hCube.performRotation(Color::Yellow, 1);
+			edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+		}
+
+		if (edgeColorOnSide == nextColor) { // edge is on the right of its desired location
+			_hCube.performRotationSequence({
+				{ Color::Yellow, 1 },
+				{ crossColor, 1 },
+				{ Color::Yellow, -1 },
+				{ crossColor, -1 },
+				{ Color::Yellow, -1 },
+				{ nextColor, -1 },
+				{ Color::Yellow, 1 },
+				{ nextColor, 1 } });
+		}
+		else { // on the left
+			_hCube.performRotationSequence({
+				{ Color::Yellow, -1 },
+				{ nextColor, -1 },
+				{ Color::Yellow, 1 },
+				{ nextColor, 1 },
+				{ Color::Yellow, 1 },
+				{ crossColor, 1 },
+				{ Color::Yellow, -1 },
+				{ crossColor, -1 } });
+		}
+
+		crossColor = nextColor;
+	} while (crossColor != startColor);
+}
+
 std::vector<MoveOrientation> Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
+	_hCube.locateEdgePos(Color::Orange, Color::Blue);
 	step1();
 	step2();
+	step3();
 
 	return std::vector<MoveOrientation>(); // temp
 }

@@ -17,6 +17,7 @@ namespace EzRuby {
 		static Color crossGreatestColor(Color color1, Color color2);
 		void step1();
 		void step2();
+		void step3();
 
 	public:
 		Solver() = delete;
