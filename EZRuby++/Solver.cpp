@@ -261,7 +261,8 @@ void Solver::yellowCrossStep() {
 }
 
 void Solver::edgeIntegrityStep() {
-
+	// OPTI: know specific moves associated with each cases
+	// 
 }
 
 std::vector<MoveOrientation> Solver::getCubeSolution() {
@@ -271,8 +272,36 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	whiteCornersStep();
 	middleLayerStep();
 	yellowCrossStep();
+	edgeIntegrityStep();
 
 	return std::vector<MoveOrientation>(); // temp
+}
+
+void Solver::performChairMove(Color frontFace, bool left) {
+	const Color upFace = Color::Yellow;
+	// OPTI: enable upFace parameter for when side chair is needed (instead of double R/L chair)
+
+	if (frontFace == Color::Yellow ||
+		frontFace == Color::White ||
+		upFace == Color::White) {
+		throw std::exception("useless chair move");
+	}
+
+	// RU2R'U'RU'R' for right
+	// L'U2LUL'UL for left
+	Color sideFace = left // In reverse context (yellow up)
+		? crossNextColor(frontFace) // left face
+		: crossPreviousColor(frontFace); // right face
+	int sideTowards = left ? -1 : 1;
+
+	_hCube.performRotationSequence({
+		{ sideFace, sideTowards },
+		{ upFace, 2 },
+		{ sideFace, -sideTowards },
+		{ upFace, -1 },
+		{ sideFace, sideTowards },
+		{ upFace, -1 },
+		{ sideFace, -sideTowards } });
 }
 
 // order: red green orange blue, right if top side is white, left if yellow
@@ -285,6 +314,17 @@ Color Solver::crossNextColor(Color color) {
 	};
 
 	return nextColors[color];
+}
+
+Color Solver::crossPreviousColor(Color color) {
+	std::map<Color, Color> previousColors = {
+		{Color::Red, Color::Green},
+		{Color::Green, Color::Orange},
+		{Color::Orange, Color::Blue},
+		{Color::Blue, Color::Red},
+	};
+
+	return previousColors[color];
 }
 
 Color Solver::crossGreatestColor(Color color1, Color color2) {
