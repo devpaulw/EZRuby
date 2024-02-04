@@ -20,6 +20,13 @@ namespace EzRuby {
 		Color faceColor;
 		int towards;
 	};
+
+	struct CCLoopIteration {
+		Color startColor;
+		Color crossColor;
+		Color nextColor;
+		int index;
+	};
 	//bool operator==(const Color& color1, const Color& color2) {
 	//	// Logique de comparaison personnalisée pour les couleurs
 	//	// Par exemple, comparer les valeurs entières des enum

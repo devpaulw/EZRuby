@@ -1,7 +1,9 @@
 #include "Solver.h"
 #include <map>
 #include <iostream>
-#include <functional>
+#include <sstream>
+#include <array>
+#include <optional>
 #include "ezruby_exception.h"
 #include "Viewer.h"
 
@@ -68,7 +70,7 @@ void Solver::whiteCornersStep() {
 
 			_hCube.performRotation(faceToRotate, -1);
 			for (size_t i = 0; true; i++) {
-				if (i >= 4)
+				if (i >= CROSS_COLOR_COUNT)
 					throw EZRubyException("Infinite loop");
 
 				_hCube.performRotation(Color::Yellow, -1);
@@ -119,17 +121,13 @@ void Solver::whiteCornersStep() {
 }
 
 void Solver::middleLayerStep() {
-	const Color startColor = Color::Red;
-	Color crossColor = startColor;
 	// HTBD: because this scheme is everywhere, do something to do some kind of lambda 
 	// (give directly the crossColor and nextColor in function arguments)
 
-	do {
-		Color nextColor = crossNextColor(crossColor);
-
+	executeCCLoop([&](CCLoopIteration it) {
 		// move 1 - unlock corner if trapped
 		// OPTI no need to unlock if already well placed (to check)
-		ColorPair edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+		ColorPair edgePos = _hCube.locateEdgePos(it.crossColor, it.nextColor);
 		if (!edgePos.contains(Color::Yellow)) {
 			Color trapRightFace = crossGreatestColor(edgePos.first, edgePos.second),
 				trapLeftFace = trapRightFace == edgePos.first ? edgePos.second : edgePos.first;
@@ -145,39 +143,37 @@ void Solver::middleLayerStep() {
 		}
 
 		// move 2 - place the corner
-		edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+		edgePos = _hCube.locateEdgePos(it.crossColor, it.nextColor);
 		// side color is the one that is not in the yellow face
-		Color edgeColorOnSide = edgePos.first == Color::Yellow ? nextColor : crossColor;
+		Color edgeColorOnSide = edgePos.first == Color::Yellow ? it.nextColor : it.crossColor;
 		while (!edgePos.contains(edgeColorOnSide)) {
 			_hCube.performRotation(Color::Yellow, 1);
-			edgePos = _hCube.locateEdgePos(crossColor, nextColor);
+			edgePos = _hCube.locateEdgePos(it.crossColor, it.nextColor);
 		}
 
-		if (edgeColorOnSide == nextColor) { // edge is on the right of its desired location
+		if (edgeColorOnSide == it.nextColor) { // edge is on the right of its desired location
 			_hCube.performRotationSequence({
 				{ Color::Yellow, 1 },
-				{ crossColor, 1 },
+				{ it.crossColor, 1 },
 				{ Color::Yellow, -1 },
-				{ crossColor, -1 },
+				{ it.crossColor, -1 },
 				{ Color::Yellow, -1 },
-				{ nextColor, -1 },
+				{ it.nextColor, -1 },
 				{ Color::Yellow, 1 },
-				{ nextColor, 1 } });
+				{ it.nextColor, 1 } });
 		}
 		else { // on the left
 			_hCube.performRotationSequence({
 				{ Color::Yellow, -1 },
-				{ nextColor, -1 },
+				{ it.nextColor, -1 },
 				{ Color::Yellow, 1 },
-				{ nextColor, 1 },
+				{ it.nextColor, 1 },
 				{ Color::Yellow, 1 },
-				{ crossColor, 1 },
+				{ it.crossColor, 1 },
 				{ Color::Yellow, -1 },
-				{ crossColor, -1 } });
+				{ it.crossColor, -1 } });
 		}
-
-		crossColor = nextColor;
-	} while (crossColor != startColor);
+		});
 }
 
 void Solver::yellowCrossStep() {
@@ -260,9 +256,57 @@ void Solver::yellowCrossStep() {
 	}
 }
 
-void Solver::edgeIntegrityStep() {
+void Solver::edgeCongruenceStep() {
 	// OPTI: know specific moves associated with each cases
-	// 
+	// first: turn until one is ok
+	std::vector<Color> congruentEdgeColors;
+	executeCCLoop([&](CCLoopIteration it) {
+		ColorPair edgePos = _hCube.locateEdgePos(it.crossColor, Color::Yellow);
+		if (edgePos.first == it.crossColor) { // means the edge has integrity
+			congruentEdgeColors.push_back(it.crossColor);
+		}
+		});
+
+	switch (congruentEdgeColors.size()) {
+	case 4: {
+		return; // yellow cross congruent, stop process
+	}
+	// following cases: yellow cross unlock or attempt to solve
+	case 0: {
+		// if no congruence, keep seeking
+		_hCube.performRotation(Color::Yellow, 1);
+		break;
+		}
+	case 1: {
+		// if unicity edge congruence, do right chair (twice if necessary)
+		Color unicityViewpoint = congruentEdgeColors.front();
+		performChairMove(unicityViewpoint, false);
+		break;
+	}
+	case 2: {
+		// unlock line or notch congruence cases
+		Color cc1 = congruentEdgeColors.front(),
+			cc2 = congruentEdgeColors.back();
+		// check if edge integrity type is notch
+		bool notchCongruence = crossPreviousColor(cc2) == cc1;
+		if (notchCongruence) {
+			// if notch edge congruence, there will necessarily be unicity somewhere => keep seeking
+			_hCube.performRotation(Color::Yellow, 1);
+		}
+		else {
+			// if line edge congruence, break it and do integrity again (do one chair anywhere)
+			performChairMove(cc1, false);
+		}
+		break;
+	}
+	default: {
+		std::stringstream ss;
+		ss << "there cannot be " << congruentEdgeColors.size() << " congruent edges";
+		throw std::exception(ss.str().c_str());
+	}
+	}
+	// continue process until 4 congruent edges
+	edgeCongruenceStep();
 }
 
 std::vector<MoveOrientation> Solver::getCubeSolution() {
@@ -272,7 +316,7 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	whiteCornersStep();
 	middleLayerStep();
 	yellowCrossStep();
-	edgeIntegrityStep();
+	edgeCongruenceStep();
 
 	return std::vector<MoveOrientation>(); // temp
 }
@@ -302,6 +346,19 @@ void Solver::performChairMove(Color frontFace, bool left) {
 		{ sideFace, sideTowards },
 		{ upFace, -1 },
 		{ sideFace, -sideTowards } });
+}
+
+void Solver::executeCCLoop(std::function<void(CCLoopIteration)> executeOp) {
+	const Color startColor = Color::Red;
+	Color crossColor = startColor;
+	int index = 0;
+
+	do {
+		Color nextColor = crossNextColor(crossColor);
+		executeOp({ startColor, crossColor, nextColor, index });
+		crossColor = nextColor;
+		index++;
+	} while (crossColor != startColor);
 }
 
 // order: red green orange blue, right if top side is white, left if yellow
