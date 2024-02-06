@@ -340,7 +340,7 @@ void Solver::cornerPositioningStep() {
 			// or means it's the last iteration => nothing found, do the move anyway to unlock the situation
 			// we do it on the last iteration because it will work, alternative to rnd face technique
 			Color rightFace = crossPreviousColor(it.crossColor);
-			performMove(it.crossColor, rightFace);
+			performMove(it.nextColor, rightFace);
 			it.stop = true;
 			cornerPositioningStep(); // check again and repeat if necessary (move sometimes necessary twice)
 		}
