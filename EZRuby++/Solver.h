@@ -26,6 +26,8 @@ namespace EzRuby {
 		void middleLayerStep();
 		void yellowCrossStep();
 		void edgeCongruenceStep();
+		void cornerPositioningStep();
+		void finalChairsStep();
 
 	public:
 		Solver() = delete;

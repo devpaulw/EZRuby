@@ -26,6 +26,7 @@ namespace EzRuby {
 		Color crossColor;
 		Color nextColor;
 		int index;
+		bool& stop;
 	};
 	//bool operator==(const Color& color1, const Color& color2) {
 	//	// Logique de comparaison personnalisée pour les couleurs

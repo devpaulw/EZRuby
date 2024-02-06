@@ -309,6 +309,48 @@ void Solver::edgeCongruenceStep() {
 	edgeCongruenceStep();
 }
 
+void Solver::cornerPositioningStep() {
+	auto performMove = [&](Color leftFace, Color rightFace) {
+		_hCube.performRotationSequence({
+			{ leftFace, -1 },
+			{ Color::Yellow, 1 },
+			{ rightFace, 1 },
+			{ Color::Yellow, -1 },
+			{ leftFace, 1 },
+			{ Color::Yellow, 1 },
+			{ rightFace, -1 },
+			{ Color::Yellow, -1 } });
+		};
+	bool correctPreviousCorner = false;
+
+	executeCCLoop([&](CCLoopIteration it) {
+		ColorTriplet corner = _hCube.getCornerAt(Color::Yellow, it.crossColor, it.nextColor);
+		if (corner.contains(it.crossColor) && corner.contains(it.nextColor)) {
+			// means this one is correctly positioned
+			if (correctPreviousCorner) {
+				// if at least 2 are well positioned => all are correct => finish the process
+				it.stop = true;
+			}
+			else {
+				correctPreviousCorner = true;
+			}
+		}
+		else if (correctPreviousCorner || it.nextColor == it.startColor) {
+			// means this correct is not correct, but the previous was => apply move
+			// or means it's the last iteration => nothing found, do the move anyway to unlock the situation
+			// we do it on the last iteration because it will work, alternative to rnd face technique
+			Color rightFace = crossPreviousColor(it.crossColor);
+			performMove(it.crossColor, rightFace);
+			it.stop = true;
+			cornerPositioningStep(); // check again and repeat if necessary (move sometimes necessary twice)
+		}
+		});
+}
+
+void Solver::finalChairsStep() {
+
+}
+
 std::vector<MoveOrientation> Solver::getCubeSolution() {
 	_solution.clear(); // to avoid issues when the method is called many times
 
@@ -317,6 +359,8 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	middleLayerStep();
 	yellowCrossStep();
 	edgeCongruenceStep();
+	cornerPositioningStep();
+	finalChairsStep();
 
 	return std::vector<MoveOrientation>(); // temp
 }
@@ -352,13 +396,14 @@ void Solver::executeCCLoop(std::function<void(CCLoopIteration)> executeOp) {
 	const Color startColor = Color::Red;
 	Color crossColor = startColor;
 	int index = 0;
+	bool stop = false;
 
 	do {
 		Color nextColor = crossNextColor(crossColor);
-		executeOp({ startColor, crossColor, nextColor, index });
+		executeOp({ startColor, crossColor, nextColor, index, stop });
 		crossColor = nextColor;
 		index++;
-	} while (crossColor != startColor);
+	} while (crossColor != startColor && !stop);
 }
 
 // order: red green orange blue, right if top side is white, left if yellow
