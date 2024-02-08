@@ -348,7 +348,26 @@ void Solver::cornerPositioningStep() {
 }
 
 void Solver::finalChairsStep() {
-
+	// OPTI 
+	// 1. side chair
+	// 2. rotate diagonal invalid corners face move solution
+	bool incorrectPreviousCorner = false;
+	executeCCLoop([&](CCLoopIteration it) {
+		ColorTriplet corner = _hCube.getCornerAt(Color::Yellow, it.crossColor, it.nextColor);
+		// check corner matches corner position (rightly inserted)
+		if (!(corner.first == Color::Yellow && corner.second == it.crossColor && corner.third == it.nextColor)
+			|| incorrectPreviousCorner) { // if incorrect previous corner and correct current corner => diagonal case
+			if (incorrectPreviousCorner) {
+				this->performChairMove(it.nextColor, false);
+				this->performChairMove(it.nextColor, true);
+				it.stop = true;
+				finalChairsStep(); // continue until all 
+			}
+			else {
+				incorrectPreviousCorner = true;	
+			}
+		}
+		});
 }
 
 std::vector<MoveOrientation> Solver::getCubeSolution() {
@@ -386,9 +405,9 @@ void Solver::performChairMove(Color frontFace, bool left) {
 		{ sideFace, sideTowards },
 		{ upFace, 2 },
 		{ sideFace, -sideTowards },
-		{ upFace, -1 },
+		{ upFace, -sideTowards },
 		{ sideFace, sideTowards },
-		{ upFace, -1 },
+		{ upFace, -sideTowards },
 		{ sideFace, -sideTowards } });
 }
 
