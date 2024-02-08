@@ -12,13 +12,23 @@ namespace EzRuby {
 		Cube& _hCube;
 		std::vector<MoveOrientation> _solution;
 
-		// order: red green orange blue, right if top side is white, left if yellow
-		//static ColorPair extractCrossColors(Color color1, Color color2, Color color3);
+		static Color crossDistantColor(Color color, int distance);
 		static Color crossNextColor(Color color);
 		static Color crossPreviousColor(Color color);
-		static Color crossGreatestColor(Color color1, Color color2); 
+		static Color crossGreatestColor(Color color1, Color color2);
 
-		void performChairMove(Color frontFace, bool left);
+		/// <summary>
+		/// Perform chair move
+		/// </summary>
+		/// <param name="sideFace">the side where the chair is</param>
+		/// <param name="upFace">the side where the man walks</param>
+		/// <param name="isLeftSide">side is considered right if false, left if true</param>
+		void performChairMove(Color frontFace, Color upFace, bool left);
+
+		/// <summary>
+		/// Execute loop iterating on all cross colors
+		/// </summary>
+		/// <param name="executeOp">the operation to be executed at each iteration</param>
 		void executeCCLoop(std::function<void(CCLoopIteration)> executeOp); // loop on cross colors
 
 		void whiteCrossStep();

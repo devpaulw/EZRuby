@@ -142,7 +142,6 @@ ColorTriplet Cube::locateCornerPos(Color color1, Color color2, Color color3) con
 	// then, we determine on which face these indices belong
 	Color face1Color = indexBelongingFace(sq1Index);
 	Color face2Color = indexBelongingFace(sq2Index);
-
 	Color face3Color = indexBelongingFace(sq3Index);
 	ColorTriplet ret(face1Color, face2Color, face3Color);
 	return ret;

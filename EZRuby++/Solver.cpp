@@ -10,11 +10,8 @@
 using namespace EzRuby;
 
 void Solver::whiteCrossStep() {
-	const Color startColor = Color::Red;
-	Color crossColor = startColor;
-	do {
-		if (LOG_OUTPUT) std::cout << static_cast<int>(crossColor) << "TWI\n"; // TEMP
-		ColorPair edgePos = _hCube.locateEdgePos(Color::White, crossColor);
+	executeCCLoop([&](CCLoopIteration it) {
+		ColorPair edgePos = _hCube.locateEdgePos(Color::White, it.crossColor);
 
 		// move 1, aiming to bring the edge towards yellow face
 		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
@@ -36,32 +33,25 @@ void Solver::whiteCrossStep() {
 		// move 2, rotate until one of the edge square touches right face
 		// OPTI: can be -1 instead of 3. But this can be done at the move sequences process 
 		int rotCount = 0; // For checks
-		edgePos = _hCube.locateEdgePos(Color::White, crossColor);
-		while (!edgePos.contains(crossColor)) {
+		edgePos = _hCube.locateEdgePos(Color::White, it.crossColor);
+		while (!edgePos.contains(it.crossColor)) {
 			_hCube.performRotation(Color::Yellow, 1);
 			if (++rotCount >= CROSS_COLOR_COUNT) {
 				throw EZRubyException("yellow face rotation count should not exceed 3");
 			}
-			edgePos = _hCube.locateEdgePos(Color::White, crossColor);
+			edgePos = _hCube.locateEdgePos(Color::White, it.crossColor);
 		}
 
 		// move 3, to place the side correctly on the white cross
-		_hCube.performRotation(crossColor, 2);
-
-		crossColor = crossNextColor(crossColor);
-	} while (crossColor != startColor);
+		_hCube.performRotation(it.crossColor, 2);
+		});
 }
 
 void Solver::whiteCornersStep() {
 	// first, if the corner doesn't touch the yellow face => place it right
-	const Color startColor = Color::Red;
-	Color crossColor = startColor;
-
-	do {
-		Color nextColor = crossNextColor(crossColor);
-
+	executeCCLoop([&](CCLoopIteration it) {
 		// move 1 - remove corner from crown (especially when wrong one, or displaced)
-		ColorTriplet currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
+		ColorTriplet currentCorner = _hCube.locateCornerPos(Color::White, it.crossColor, it.nextColor);
 		if (currentCorner.contains(Color::White)) {
 			// HTBD If ever we use this "extract cross colors from corner" way, do a method for that
 			Color cc1 = (currentCorner.first == White) ? currentCorner.second : currentCorner.first;
@@ -83,47 +73,46 @@ void Solver::whiteCornersStep() {
 		}
 
 		// move 2 - place the corner below right emplacement
-		currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
-		while (!(currentCorner.contains(crossColor) && currentCorner.contains(nextColor))) {
+		currentCorner = _hCube.locateCornerPos(Color::White, it.crossColor, it.nextColor);
+		while (!(currentCorner.contains(it.crossColor) && currentCorner.contains(it.nextColor))) {
 			_hCube.performRotation(Color::Yellow, 1);
-			currentCorner = _hCube.locateCornerPos(Color::White, crossColor, nextColor);
+			currentCorner = _hCube.locateCornerPos(Color::White, it.crossColor, it.nextColor);
 		}
 
 		// move 3 - place the corner correctly in the white face
 		if (currentCorner.first == Color::Yellow) {
 			// white touches yellow
 			_hCube.performRotationSequence({
-				{ crossColor, 1 },
+				{ it.crossColor, 1 },
 				{ Color::Yellow, 2 },
-				{ crossColor, -1 },
-				{ Color::Yellow, -2 },
-				{ nextColor, -1 },
+				{ it.crossColor, -1 },
+				{ Color::Yellow, 2 },
+				{ it.nextColor, -1 },
 				{ Color::Yellow, 1 },
-				{ nextColor, 1 } });
+				{ it.nextColor, 1 } });
 		}
-		else if (currentCorner.first == crossColor) {
+		else if (currentCorner.first == it.crossColor) {
 			// white touches crossColor (leftColor)
 			_hCube.performRotationSequence({
-				{ crossColor, 1 },
+				{ it.crossColor, 1 },
 				{ Color::Yellow, 1 },
-				{ crossColor, -1 } });
+				{ it.crossColor, -1 } });
 		}
-		else if (currentCorner.first == nextColor) {
+		else if (currentCorner.first == it.nextColor) {
 			// white touches nextColor (rightColor)
 			_hCube.performRotationSequence({
-				{ nextColor, -1 },
+				{ it.nextColor, -1 },
 				{ Color::Yellow, -1 },
-				{ nextColor, 1 } });
+				{ it.nextColor, 1 } });
 		}
 
-		crossColor = nextColor; //TEMP to avoid 
-	} while (crossColor != startColor);
+		it.crossColor = it.nextColor; //TEMP to avoid 
+		});
 }
 
 void Solver::middleLayerStep() {
 	// HTBD: because this scheme is everywhere, do something to do some kind of lambda 
 	// (give directly the crossColor and nextColor in function arguments)
-
 	executeCCLoop([&](CCLoopIteration it) {
 		// move 1 - unlock corner if trapped
 		// OPTI no need to unlock if already well placed (to check)
@@ -223,7 +212,7 @@ void Solver::yellowCrossStep() {
 		_hCube.performRotation(Color::Yellow, 2);
 		break;
 	default:
-		throw std::exception("unknown yellow pattern");
+		throw EZRubyException("unknown yellow pattern");
 	}
 
 	// 3. Do the right move knowing the pattern type
@@ -271,16 +260,16 @@ void Solver::edgeCongruenceStep() {
 	case 4: {
 		return; // yellow cross congruent, stop process
 	}
-	// following cases: yellow cross unlock or attempt to solve
+		  // following cases: yellow cross unlock or attempt to solve
 	case 0: {
 		// if no congruence, keep seeking
 		_hCube.performRotation(Color::Yellow, 1);
 		break;
-		}
+	}
 	case 1: {
 		// if unicity edge congruence, do right chair (twice if necessary)
 		Color unicityViewpoint = congruentEdgeColors.front();
-		performChairMove(unicityViewpoint, false);
+		performChairMove(crossPreviousColor(unicityViewpoint), Color::Yellow, false);
 		break;
 	}
 	case 2: {
@@ -295,14 +284,14 @@ void Solver::edgeCongruenceStep() {
 		}
 		else {
 			// if line edge congruence, break it and do integrity again (do one chair anywhere)
-			performChairMove(cc1, false);
+			performChairMove(crossPreviousColor(cc1), Color::Yellow, false);
 		}
 		break;
 	}
 	default: {
 		std::stringstream ss;
 		ss << "there cannot be " << congruentEdgeColors.size() << " congruent edges";
-		throw std::exception(ss.str().c_str());
+		throw EZRubyException(ss.str().c_str());
 	}
 	}
 	// continue process until 4 congruent edges
@@ -358,13 +347,13 @@ void Solver::finalChairsStep() {
 		if (!(corner.first == Color::Yellow && corner.second == it.crossColor && corner.third == it.nextColor)
 			|| incorrectPreviousCorner) { // if incorrect previous corner and correct current corner => diagonal case
 			if (incorrectPreviousCorner) {
-				this->performChairMove(it.nextColor, false);
-				this->performChairMove(it.nextColor, true);
+				this->performChairMove(it.crossColor, Color::Yellow, false);
+				this->performChairMove(crossNextColor(it.nextColor), Color::Yellow, true);
 				it.stop = true;
 				finalChairsStep(); // continue until all 
 			}
 			else {
-				incorrectPreviousCorner = true;	
+				incorrectPreviousCorner = true;
 			}
 		}
 		});
@@ -384,22 +373,15 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	return std::vector<MoveOrientation>(); // temp
 }
 
-void Solver::performChairMove(Color frontFace, bool left) {
-	const Color upFace = Color::Yellow;
-	// OPTI: enable upFace parameter for when side chair is needed (instead of double R/L chair)
-
-	if (frontFace == Color::Yellow ||
-		frontFace == Color::White ||
+void Solver::performChairMove(Color sideFace, Color upFace, bool isLeftSide) {
+	if (sideFace == Color::White ||
 		upFace == Color::White) {
-		throw std::exception("useless chair move");
+		throw EZRubyException("useless chair move");
 	}
 
 	// RU2R'U'RU'R' for right
 	// L'U2LUL'UL for left
-	Color sideFace = left // In reverse context (yellow up)
-		? crossNextColor(frontFace) // left face
-		: crossPreviousColor(frontFace); // right face
-	int sideTowards = left ? -1 : 1;
+	int sideTowards = isLeftSide ? -1 : 1;
 
 	_hCube.performRotationSequence({
 		{ sideFace, sideTowards },
@@ -425,28 +407,24 @@ void Solver::executeCCLoop(std::function<void(CCLoopIteration)> executeOp) {
 	} while (crossColor != startColor && !stop);
 }
 
-// order: red green orange blue, right if top side is white, left if yellow
-Color Solver::crossNextColor(Color color) {
-	std::map<Color, Color> nextColors = {
-		{Color::Red, Color::Blue},
-		{Color::Blue, Color::Orange},
-		{Color::Orange, Color::Green},
-		{Color::Green, Color::Red},
-	};
+Color Solver::crossDistantColor(Color color, int distance) {
+	// order: right if top side is white, left if yellow
+	Color crossColors[] = { Color::Red, Color::Blue, Color::Orange, Color::Green };
 
-	return nextColors[color];
+	int colorIndex;
+	for (colorIndex = 0;
+		crossColors[colorIndex] != color;
+		++colorIndex) {
+		if (colorIndex >= CROSS_COLOR_COUNT) {
+			throw EZRubyException("input color should be a cross color");
+		}
+	}
+
+	int nextColorIndex = (colorIndex + distance) % CROSS_COLOR_COUNT;
+	return crossColors[nextColorIndex];
 }
-
-Color Solver::crossPreviousColor(Color color) {
-	std::map<Color, Color> previousColors = {
-		{Color::Red, Color::Green},
-		{Color::Green, Color::Orange},
-		{Color::Orange, Color::Blue},
-		{Color::Blue, Color::Red},
-	};
-
-	return previousColors[color];
-}
+Color Solver::crossNextColor(Color color) { return crossDistantColor(color, 1); }
+Color Solver::crossPreviousColor(Color color) { return crossDistantColor(color, -1); }
 
 Color Solver::crossGreatestColor(Color color1, Color color2) {
 	std::map<Color, int> crossColorOrder = {
@@ -463,5 +441,5 @@ Color Solver::crossGreatestColor(Color color1, Color color2) {
 	else if (face2Rank < face1Rank)
 		return color2;
 	else
-		throw std::exception();
+		throw EZRubyException();
 }
