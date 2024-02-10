@@ -2,8 +2,40 @@
 #include "Viewer.h"
 #include "Cube.h"
 #include "Solver.h"
+#include "ezruby_exception.h"
+#include <map>
+#include <sstream>
 
 using namespace EzRuby;
+
+void printSolutionPhrase(const Cube& cube) {
+	// string solution mapper
+	std::vector<Rotation> solution = cube.getHistory();
+	static std::map<Color, char> colorMoveMap = {
+		{Color::Red, 'F'}, // front
+		{Color::Blue, 'R'}, // right
+		{Color::Orange, 'B'}, // back
+		{Color::Green, 'L'}, // left
+		{Color::White, 'U'}, // up
+		{Color::Yellow, 'D'}, // down
+	};
+
+	std::stringstream solutionPhrase;
+	for (Rotation rotation : solution) {
+		char move = colorMoveMap[rotation.faceColor];
+		solutionPhrase << move;
+
+		if (rotation.towards == -1)
+			solutionPhrase << '\'';
+		else if (rotation.towards == 2)
+			solutionPhrase << '2';
+		else if (rotation.towards != 1)
+			throw EZRubyException("towards cannot be different than +, - or ++");
+	}
+
+	std::cout << "Cube solution:" << std::endl;
+	std::cout << solutionPhrase.str() << std::endl;
+}
 
 int main() {
 	std::array<Color, Cube::SQ_COUNT> testCubeArr = {
@@ -15,29 +47,19 @@ int main() {
 		Color::Orange, Color::Red, Color::Red, Color::Red, Color::White, Color::Blue, Color::Red, Color::White
 	};
 	Cube cube(testCubeArr);
-	//while (true) {
-	//	ViewerV1 viewer(testCube);
-	//	int result = viewer.showWindow();
-	//	testCube.rotateFace(Color::White, 2);
-	//}
-
-	//ColorTriplet triplet1 = cube.getCornerAt(Color::Red, Color::Blue, Color::White);
-	//ColorTriplet triplet2 = cube.getCornerAt(Color::Red, Color::White, Color::Green);
-	//ColorTriplet triplet3 = cube.getCornerAt(Color::Red, Color::White, Color::Blue);
-	//ColorTriplet triplet4 = cube.getCornerAt(Color::Yellow, Color::White, Color::Blue);
 
 	Solver solver(cube);
-	solver.getCubeSolution();
+	solver.solveCube();
+
+	printSolutionPhrase(cube);
+	// TODO Solution optimiser
+	// Which mean:
+	// SolutionProvider
+	// input:cube
+	// std::vector<Rotation> simplifyRotations(cube)
+	// std::string getSolutionPhrase(std::vector<Rotation>)
 
 	ViewerV1 viewer3(cube);
 	viewer3.showWindow();
-
-	//testCube.rotateFace(static_cast<Color>(4), 1);
-	//ViewerV1 viewer3(testCube);
-	//viewer3.showWindow();
-
-	//testCube.rotateFace(static_cast<Color>(0), 2);
-	//ViewerV1 viewer4(testCube);
-	//viewer4.showWindow();
 	return 0;
 }

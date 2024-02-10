@@ -10,7 +10,6 @@ namespace EzRuby {
 		static const int CROSS_COLOR_COUNT = 4;
 
 		Cube& _hCube;
-		std::vector<MoveOrientation> _solution;
 
 		static Color crossDistantColor(Color color, int distance);
 		static Color crossNextColor(Color color);
@@ -46,6 +45,6 @@ namespace EzRuby {
 		{
 		}
 
-		std::vector<MoveOrientation> getCubeSolution();
+		void solveCube();
 	};
 }

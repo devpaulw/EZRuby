@@ -359,9 +359,7 @@ void Solver::finalChairsStep() {
 		});
 }
 
-std::vector<MoveOrientation> Solver::getCubeSolution() {
-	_solution.clear(); // to avoid issues when the method is called many times
-
+void Solver::solveCube() {
 	whiteCrossStep();
 	whiteCornersStep();
 	middleLayerStep();
@@ -369,8 +367,6 @@ std::vector<MoveOrientation> Solver::getCubeSolution() {
 	edgeCongruenceStep();
 	cornerPositioningStep();
 	finalChairsStep();
-
-	return std::vector<MoveOrientation>(); // temp
 }
 
 void Solver::performChairMove(Color sideFace, Color upFace, bool isLeftSide) {

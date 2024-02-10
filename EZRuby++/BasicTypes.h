@@ -1,24 +1,14 @@
 #pragma once
-constexpr bool LOG_OUTPUT = true;
+constexpr bool LOG_OUTPUT = false;
 
 namespace EzRuby {
-	// TODO: Is it really a good filename?
-	enum MoveOrientation {
-		U, D, R, L, F, B
-	};
-
-	struct Move {
-		MoveOrientation orientation;
-		int towards; // either -, + or ++. For example: U', U or U2
-	};
-
 	enum Color {
 		Red = 0, Blue = 1, White = 2, Green = 3, Yellow = 4, Orange = 5
 	};
 
 	struct Rotation {
 		Color faceColor;
-		int towards;
+		int towards; // either -, + or ++. For example: U', U or U2
 	};
 
 	struct CCLoopIteration {

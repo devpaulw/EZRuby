@@ -65,6 +65,7 @@ Color EzRuby::Cube::indexBelongingFace(int index) const {
 
 EzRuby::Cube::Cube(std::array<Color, SQ_COUNT> sqArr) {
 	std::copy(std::begin(sqArr), std::end(sqArr), std::begin(_sqArr));
+
 }
 
 // It returns where on which face color1 is located, same for color2.
@@ -199,6 +200,10 @@ void Cube::performRotation(Color faceColor, int towards) {
 	static bool nativeCall = true;
 	if (nativeCall && LOG_OUTPUT)
 		std::cout << "Rotating " << static_cast<int>(faceColor) << " by " << towards << std::endl; // TEMP
+
+	// add to history
+	if (nativeCall)
+		_rotationHistory.push_back({ faceColor, towards });
 
 	// this method is quite wierd but it's working
 	if (towards == 0)
