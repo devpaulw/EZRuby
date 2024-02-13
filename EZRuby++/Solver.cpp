@@ -17,13 +17,13 @@ void Solver::whiteCrossStep() {
 		if (!edgePos.contains(Color::Yellow)) { // because if it's yellow we do nothing
 			if (edgePos.contains(Color::White)) {
 				Color rotatingFace = edgePos.first == Color::White ? edgePos.second : edgePos.first; // rotating the color that is not white
-				_hCube.performRotation(rotatingFace, 1); // OPTI to be done here to lower rotation amount, so it's not just 1 but 1 or -1 
+				this->recordRotation(rotatingFace, 1); // OPTI to be done here to lower rotation amount, so it's not just 1 but 1 or -1 
 			}
 
 			// it's now on the cross side
 			Color greatestColor = crossGreatestColor(edgePos.first, edgePos.second);
 			int dir = greatestColor == edgePos.first ? 1 : -1;
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ edgePos.second, dir },
 				{ Color::Yellow, dir },
 				{ edgePos.second, -dir } });
@@ -35,7 +35,7 @@ void Solver::whiteCrossStep() {
 		int rotCount = 0; // For checks
 		edgePos = _hCube.locateEdgePos(Color::White, it.crossColor);
 		while (!edgePos.contains(it.crossColor)) {
-			_hCube.performRotation(Color::Yellow, 1);
+			this->recordRotation(Color::Yellow, 1);
 			if (++rotCount >= CROSS_COLOR_COUNT) {
 				throw EZRubyException("yellow face rotation count should not exceed 3");
 			}
@@ -43,7 +43,7 @@ void Solver::whiteCrossStep() {
 		}
 
 		// move 3, to place the side correctly on the white cross
-		_hCube.performRotation(it.crossColor, 2);
+		this->recordRotation(it.crossColor, 2);
 		});
 }
 
@@ -58,31 +58,31 @@ void Solver::whiteCornersStep() {
 			Color cc2 = (currentCorner.first == White || currentCorner.second == White) ? currentCorner.third : currentCorner.second;
 			Color faceToRotate = crossGreatestColor(cc1, cc2);
 
-			_hCube.performRotation(faceToRotate, -1);
+			this->recordRotation(faceToRotate, -1);
 			for (size_t i = 0; true; i++) {
 				if (i >= CROSS_COLOR_COUNT)
 					throw EZRubyException("Infinite loop");
 
-				_hCube.performRotation(Color::Yellow, -1);
+				this->recordRotation(Color::Yellow, -1);
 				auto guestCp = _hCube.getCornerAt(Color::Yellow, cc1, cc2);
 				if (!guestCp.contains(Color::White))
 					break;
 			}
-			_hCube.performRotation(faceToRotate, 1);
+			this->recordRotation(faceToRotate, 1);
 			//_hCube.rotateFace(Color::Yellow, 1);
 		}
 
 		// move 2 - place the corner below right emplacement
 		currentCorner = _hCube.locateCornerPos(Color::White, it.crossColor, it.nextColor);
 		while (!(currentCorner.contains(it.crossColor) && currentCorner.contains(it.nextColor))) {
-			_hCube.performRotation(Color::Yellow, 1);
+			this->recordRotation(Color::Yellow, 1);
 			currentCorner = _hCube.locateCornerPos(Color::White, it.crossColor, it.nextColor);
 		}
 
 		// move 3 - place the corner correctly in the white face
 		if (currentCorner.first == Color::Yellow) {
 			// white touches yellow
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ it.crossColor, 1 },
 				{ Color::Yellow, 2 },
 				{ it.crossColor, -1 },
@@ -93,14 +93,14 @@ void Solver::whiteCornersStep() {
 		}
 		else if (currentCorner.first == it.crossColor) {
 			// white touches crossColor (leftColor)
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ it.crossColor, 1 },
 				{ Color::Yellow, 1 },
 				{ it.crossColor, -1 } });
 		}
 		else if (currentCorner.first == it.nextColor) {
 			// white touches nextColor (rightColor)
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ it.nextColor, -1 },
 				{ Color::Yellow, -1 },
 				{ it.nextColor, 1 } });
@@ -121,7 +121,7 @@ void Solver::middleLayerStep() {
 			Color trapRightFace = crossGreatestColor(edgePos.first, edgePos.second),
 				trapLeftFace = trapRightFace == edgePos.first ? edgePos.second : edgePos.first;
 
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ trapLeftFace, 1 },
 				{ Color::Yellow, 1 },
 				{ trapLeftFace, -1 },
@@ -136,12 +136,12 @@ void Solver::middleLayerStep() {
 		// side color is the one that is not in the yellow face
 		Color edgeColorOnSide = edgePos.first == Color::Yellow ? it.nextColor : it.crossColor;
 		while (!edgePos.contains(edgeColorOnSide)) {
-			_hCube.performRotation(Color::Yellow, 1);
+			this->recordRotation(Color::Yellow, 1);
 			edgePos = _hCube.locateEdgePos(it.crossColor, it.nextColor);
 		}
 
 		if (edgeColorOnSide == it.nextColor) { // edge is on the right of its desired location
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ Color::Yellow, 1 },
 				{ it.crossColor, 1 },
 				{ Color::Yellow, -1 },
@@ -152,7 +152,7 @@ void Solver::middleLayerStep() {
 				{ it.nextColor, 1 } });
 		}
 		else { // on the left
-			_hCube.performRotationSequence({
+			this->recordRotationSequence({
 				{ Color::Yellow, -1 },
 				{ it.nextColor, -1 },
 				{ Color::Yellow, 1 },
@@ -194,22 +194,22 @@ void Solver::yellowCrossStep() {
 		break;
 	case 0b1010:
 		patternType = PatternType::Line;
-		_hCube.performRotation(Color::Yellow, -1);
+		this->recordRotation(Color::Yellow, -1);
 		break;
 	case 0b0011:
 		patternType = PatternType::Notch;
 		break;
 	case 0b0110:
 		patternType = PatternType::Notch;
-		_hCube.performRotation(Color::Yellow, -1);
+		this->recordRotation(Color::Yellow, -1);
 		break;
 	case 0b1001:
 		patternType = PatternType::Notch;
-		_hCube.performRotation(Color::Yellow, 1);
+		this->recordRotation(Color::Yellow, 1);
 		break;
 	case 0b1100:
 		patternType = PatternType::Notch;
-		_hCube.performRotation(Color::Yellow, 2);
+		this->recordRotation(Color::Yellow, 2);
 		break;
 	default:
 		throw EZRubyException("unknown yellow pattern");
@@ -220,7 +220,7 @@ void Solver::yellowCrossStep() {
 	case PatternType::Point:
 	case PatternType::Line:
 		// FRUR'U'F'
-		_hCube.performRotationSequence({
+		this->recordRotationSequence({
 			{ startRightColor, 1 },
 			{ startLeftColor, 1 },
 			{ Color::Yellow, 1 },
@@ -234,7 +234,7 @@ void Solver::yellowCrossStep() {
 		break;
 	case PatternType::Notch:
 		// FURU'R'F'
-		_hCube.performRotationSequence({
+		this->recordRotationSequence({
 			{ startRightColor, 1 },
 			{ Color::Yellow, 1 },
 			{ startLeftColor, 1 },
@@ -263,7 +263,7 @@ void Solver::edgeCongruenceStep() {
 		  // following cases: yellow cross unlock or attempt to solve
 	case 0: {
 		// if no congruence, keep seeking
-		_hCube.performRotation(Color::Yellow, 1);
+		this->recordRotation(Color::Yellow, 1);
 		break;
 	}
 	case 1: {
@@ -280,7 +280,7 @@ void Solver::edgeCongruenceStep() {
 		bool notchCongruence = crossPreviousColor(cc2) == cc1;
 		if (notchCongruence) {
 			// if notch edge congruence, there will necessarily be unicity somewhere => keep seeking
-			_hCube.performRotation(Color::Yellow, 1);
+			this->recordRotation(Color::Yellow, 1);
 		}
 		else {
 			// if line edge congruence, break it and do integrity again (do one chair anywhere)
@@ -300,7 +300,7 @@ void Solver::edgeCongruenceStep() {
 
 void Solver::cornerPositioningStep() {
 	auto performMove = [&](Color leftFace, Color rightFace) {
-		_hCube.performRotationSequence({
+		this->recordRotationSequence({
 			{ leftFace, -1 },
 			{ Color::Yellow, 1 },
 			{ rightFace, 1 },
@@ -359,14 +359,78 @@ void Solver::finalChairsStep() {
 		});
 }
 
-void Solver::solveCube() {
-	whiteCrossStep();
-	whiteCornersStep();
-	middleLayerStep();
-	yellowCrossStep();
-	edgeCongruenceStep();
-	cornerPositioningStep();
-	finalChairsStep();
+void Solver::simplifyRotations() {
+	std::vector<Rotation> simplifiedSolution;
+
+	// step 1: add up the rotations
+	Rotation lastIgnoredRotation = this->_solution.back();
+	lastIgnoredRotation.faceColor = static_cast<Color>(
+		(static_cast<int>(lastIgnoredRotation.faceColor) + 1)
+		% Cube::FACE_COUNT);
+	this->_solution.push_back(lastIgnoredRotation);
+
+	int sameRotationColor = 0;
+	for (size_t i = 1; i < this->_solution.size() + 1; i++) {
+		const Rotation& previousRotation = this->_solution[i - 1],
+			rotation = this->_solution[i];
+		
+		sameRotationColor += previousRotation.towards;
+		
+		if (previousRotation.faceColor != rotation.faceColor) {
+			Rotation newRotation{previousRotation.faceColor, sameRotationColor};
+			simplifiedSolution.push_back(previousRotation);
+			sameRotationColor = 0;
+		}
+	}
+
+	this->_solution = simplifiedSolution;
+}
+
+std::vector<Rotation> Solver::getCubeSolution() {
+	if (!this->_solved) {
+		this->whiteCrossStep();
+		this->whiteCornersStep();
+		this->middleLayerStep();
+		this->yellowCrossStep();
+		this->edgeCongruenceStep();
+		this->cornerPositioningStep();
+		this->finalChairsStep();
+		//this->simplifyRotations();
+	}
+
+	this->_solved = true;
+	return _solution;
+}
+
+std::string Solver::getSolutionPhrase() {
+	if (!this->_solved) {
+		throw EZRubyException("cube should be solved first");
+	}
+
+	// string solution mapper
+	static std::map<Color, char> colorMoveMap = {
+		{Color::Red, 'F'}, // front
+		{Color::Blue, 'R'}, // right
+		{Color::Orange, 'B'}, // back
+		{Color::Green, 'L'}, // left
+		{Color::White, 'U'}, // up
+		{Color::Yellow, 'D'}, // down
+	};
+
+	std::stringstream solutionPhrase;
+	for (Rotation rotation : _solution) {
+		char move = colorMoveMap[rotation.faceColor];
+		solutionPhrase << move;
+
+		if (rotation.towards == -1)
+			solutionPhrase << '\'';
+		else if (rotation.towards == 2)
+			solutionPhrase << '2';
+		else if (rotation.towards != 1)
+			throw EZRubyException("towards cannot be different than +, - or ++");
+	}
+
+	return solutionPhrase.str();
 }
 
 void Solver::performChairMove(Color sideFace, Color upFace, bool isLeftSide) {
@@ -379,7 +443,7 @@ void Solver::performChairMove(Color sideFace, Color upFace, bool isLeftSide) {
 	// L'U2LUL'UL for left
 	int sideTowards = isLeftSide ? -1 : 1;
 
-	_hCube.performRotationSequence({
+	this->recordRotationSequence({
 		{ sideFace, sideTowards },
 		{ upFace, 2 },
 		{ sideFace, -sideTowards },
@@ -401,6 +465,16 @@ void Solver::executeCCLoop(std::function<void(CCLoopIteration)> executeOp) {
 		crossColor = nextColor;
 		index++;
 	} while (crossColor != startColor && !stop);
+}
+
+void Solver::recordRotation(Color faceColor, int towards) {
+	_hCube.performRotation(faceColor, towards);
+	_solution.push_back({ faceColor, towards });
+}
+
+void Solver::recordRotationSequence(std::initializer_list<Rotation> rotations) {
+	_hCube.performRotationSequence(rotations);
+	_solution.insert(_solution.end(), rotations.begin(), rotations.end());
 }
 
 Color Solver::crossDistantColor(Color color, int distance) {

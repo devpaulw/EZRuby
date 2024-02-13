@@ -3,19 +3,24 @@
 #include "BasicTypes.h"
 #include <vector>
 #include <functional>
+#include <string>
 
 namespace EzRuby {
 	class Solver {
 	private:
 		static const int CROSS_COLOR_COUNT = 4;
 
-		Cube& _hCube;
+		Cube _hCube;
+		std::vector<Rotation> _solution;
+		bool _solved = false;
 
 		static Color crossDistantColor(Color color, int distance);
 		static Color crossNextColor(Color color);
 		static Color crossPreviousColor(Color color);
 		static Color crossGreatestColor(Color color1, Color color2);
 
+		void recordRotation(Color faceColor, int towards);
+		void recordRotationSequence(std::initializer_list<Rotation> rotations);
 		/// <summary>
 		/// Perform chair move
 		/// </summary>
@@ -37,14 +42,16 @@ namespace EzRuby {
 		void edgeCongruenceStep();
 		void cornerPositioningStep();
 		void finalChairsStep();
+		void simplifyRotations();
 
 	public:
 		Solver() = delete;
 		Solver(const Solver& solver) = delete;
-		Solver(Cube& cubeToSolve) : _hCube(cubeToSolve) // by copy constructor
+		Solver(Cube& cubeToSolve) : _hCube(cubeToSolve)
 		{
 		}
 
-		void solveCube();
+		std::vector<Rotation> getCubeSolution();
+		std::string getSolutionPhrase();
 	};
 }

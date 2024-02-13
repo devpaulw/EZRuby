@@ -3,39 +3,13 @@
 #include "Cube.h"
 #include "Solver.h"
 #include "ezruby_exception.h"
+#include <vector>
 #include <map>
 #include <sstream>
 
 using namespace EzRuby;
 
-void printSolutionPhrase(const Cube& cube) {
-	// string solution mapper
-	std::vector<Rotation> solution = cube.getHistory();
-	static std::map<Color, char> colorMoveMap = {
-		{Color::Red, 'F'}, // front
-		{Color::Blue, 'R'}, // right
-		{Color::Orange, 'B'}, // back
-		{Color::Green, 'L'}, // left
-		{Color::White, 'U'}, // up
-		{Color::Yellow, 'D'}, // down
-	};
 
-	std::stringstream solutionPhrase;
-	for (Rotation rotation : solution) {
-		char move = colorMoveMap[rotation.faceColor];
-		solutionPhrase << move;
-
-		if (rotation.towards == -1)
-			solutionPhrase << '\'';
-		else if (rotation.towards == 2)
-			solutionPhrase << '2';
-		else if (rotation.towards != 1)
-			throw EZRubyException("towards cannot be different than +, - or ++");
-	}
-
-	std::cout << "Cube solution:" << std::endl;
-	std::cout << solutionPhrase.str() << std::endl;
-}
 
 int main() {
 	std::array<Color, Cube::SQ_COUNT> testCubeArr = {
@@ -49,15 +23,17 @@ int main() {
 	Cube cube(testCubeArr);
 
 	Solver solver(cube);
-	solver.solveCube();
+	auto solution = solver.getCubeSolution();
+	std::cout << "Cube solution:" << std::endl;
+	std::cout << solver.getSolutionPhrase() << std::endl;
 
-	printSolutionPhrase(cube);
 	// TODO Solution optimiser
 	// Which mean:
 	// SolutionProvider
 	// input:cube
 	// std::vector<Rotation> simplifyRotations(cube)
 	// std::string getSolutionPhrase(std::vector<Rotation>)
+	// getCubeSolution
 
 	ViewerV1 viewer3(cube);
 	viewer3.showWindow();

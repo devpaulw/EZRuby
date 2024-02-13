@@ -15,7 +15,6 @@ namespace EzRuby {
 
 	private:
 		Color _sqArr[SQ_COUNT];
-		std::vector<Rotation> _rotationHistory;
 
 		// Edge square neighbor
 		int edgeSqNeighbor(int sqIndex) const;
@@ -25,10 +24,9 @@ namespace EzRuby {
 	public:
 		Cube() = delete;
 		Cube(std::array<Color, SQ_COUNT> sqArr);
-		Cube(const Cube& cube) = default; // For now
+		Cube(const Cube& cube);
 
 		inline Color getColorAt(int index) const { return _sqArr[index]; }
-		inline std::vector<Rotation> getHistory() const { return _rotationHistory; }
 
 		// It returns where on which face color1 is located, same for color2.
 		// TODO: This point has to be explicit because it is important, make sure it's easy to figure out this point 
