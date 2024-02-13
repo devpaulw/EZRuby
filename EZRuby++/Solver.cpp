@@ -361,6 +361,7 @@ void Solver::finalChairsStep() {
 
 void Solver::simplifyRotations() {
 	std::vector<Rotation> simplifiedSolution;
+	std::cout << "not simplified:\n" << this->getSolutionPhrase() << std::endl; // temp
 
 	// step 1: add up the rotations
 	Rotation lastIgnoredRotation = this->_solution.back();
@@ -370,7 +371,7 @@ void Solver::simplifyRotations() {
 	this->_solution.push_back(lastIgnoredRotation);
 
 	int sameRotationColor = 0;
-	for (size_t i = 1; i < this->_solution.size() + 1; i++) {
+	for (size_t i = 1; i < this->_solution.size(); i++) {
 		const Rotation& previousRotation = this->_solution[i - 1],
 			rotation = this->_solution[i];
 		
@@ -395,15 +396,16 @@ std::vector<Rotation> Solver::getCubeSolution() {
 		this->edgeCongruenceStep();
 		this->cornerPositioningStep();
 		this->finalChairsStep();
-		//this->simplifyRotations();
+		_solved = true; // temp
+		this->simplifyRotations();
 	}
 
-	this->_solved = true;
+	_solved = true;
 	return _solution;
 }
 
 std::string Solver::getSolutionPhrase() {
-	if (!this->_solved) {
+	if (!_solved) {
 		throw EZRubyException("cube should be solved first");
 	}
 
